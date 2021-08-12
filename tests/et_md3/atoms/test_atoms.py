@@ -235,11 +235,11 @@ def test_scale_forces():
     for i in range(n):
         atms.a[i,:] = 1.0 + i
     atms.m = 2.0 * np.ones_like(atms.a)
-    atms.scale_forces()
+    atms.scale_forces(impl='py')
     for i in range(n):
         assert np,all(atms.a[i,:] == (1.0 + i)/2.0)
     atms.m = 2.0
-    atms.scale_forces()
+    atms.scale_forces(impl='py')
     for i in range(n):
         assert np,all(atms.a[i,:] == (1.0 + i)/4.0)
 
