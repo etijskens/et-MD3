@@ -149,13 +149,58 @@ def test_force_direction():
     assert fij[0] > 0
 
 
+def test_compute_interaction_energy():
+    lj = LJ()
+    e01 = lj.potential(1.)
+    atoms = et_md3.atoms.Atoms(5,zero=True)
+    atoms.r[:, 0] = np.arange(0.0, 5.0)
+    print(atoms.r)
+    vl = et_md3.verletlist.VL(cutoff=1.01)
+    et_md3.verletlist.vlbuilders.build_simple(vl, atoms.r)
+    print(vl)
+    epot = lj.compute_interaction_energy(vl, atoms.r)
+    assert epot == 4 * e01
+
+
+def test_compute_interaction_forces():
+    lj = LJ()
+    r0 = lj.r0()
+    ff01 = lj.force_factor(1.)
+    print(f'ff01 = {ff01}')
+    atoms = et_md3.atoms.Atoms(5,zero=True)
+    atoms.r[:, 0] = np.arange(0.0, 5.0)
+    print(atoms.r)
+    vl = et_md3.verletlist.VL(cutoff=1.01)
+    et_md3.verletlist.vlbuilders.build_simple(vl, atoms.r)
+    print(vl)
+    epot = lj.compute_interaction_forces(vl, atoms.r, atoms.a)
+    a = atoms.a
+    assert a[0,0] == ff01
+    assert a[0,1] == 0.0
+    assert a[0,2] == 0.0
+    assert a[1,0] == 0.0
+    assert a[1,1] == 0.0
+    assert a[1,2] == 0.0
+    assert a[2,0] == 0.0
+    assert a[2,1] == 0.0
+    assert a[2,2] == 0.0
+    assert a[3,0] == 0.0
+    assert a[3,1] == 0.0
+    assert a[3,2] == 0.0
+    assert a[4,0] == -ff01
+    assert a[4,1] == 0.0
+    assert a[4,2] == 0.0
+
+
+
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_scaling
+    the_test_you_want_to_debug = test_compute_interaction_forces
 
+    print(f'__main__ running {the_test_you_want_to_debug}')
     the_test_you_want_to_debug()
     print("-*# finished #*-")
 # ==============================================================================
