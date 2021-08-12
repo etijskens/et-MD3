@@ -192,7 +192,6 @@ def test_compute_interaction_forces():
     assert a[4,2] == 0.0
 
 
-
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
