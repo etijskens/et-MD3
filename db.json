@@ -1,0 +1,126 @@
+{
+  "atoms": {
+    "context": {
+      "verbosity": 1,
+      "project_path": "/Users/etijskens/software/dev/workspace/et-MD3",
+      "default_project_path": true,
+      "clear_log": false,
+      "_cfg_filename": "micc3.cfg",
+      "_cfg_dir": "/Users/etijskens/.micc2",
+      "invoked_subcommand": "add",
+      "overwrite_preferences": {},
+      "add_name": "atoms",
+      "flag_cli": false,
+      "flag_clisub": false,
+      "flag_py": true,
+      "flag_f90": false,
+      "flag_cpp": false,
+      "overwrite": false,
+      "backup": false,
+      "package_name": "et_md3",
+      "module_location_relative": ".",
+      "module_name": "atoms",
+      "module_srcdir": "et_md3/atoms",
+      "import_lib": "et_md3.atoms",
+      "templates": [
+        "submodule-py",
+        "submodule-py-test"
+      ]
+    },
+    "API.rst": "\n.. automodule:: et_md3.atoms\n   :members:\n\n",
+    "et_md3/__init__.py": "\nimport et_md3.atoms"
+  },
+  "verletlist": {
+    "context": {
+      "verbosity": 1,
+      "project_path": "/Users/etijskens/software/dev/workspace/et-MD3",
+      "default_project_path": true,
+      "clear_log": false,
+      "_cfg_filename": "micc3.cfg",
+      "_cfg_dir": "/Users/etijskens/.micc2",
+      "invoked_subcommand": "add",
+      "overwrite_preferences": {},
+      "add_name": "verletlist",
+      "flag_cli": false,
+      "flag_clisub": false,
+      "flag_py": true,
+      "flag_f90": false,
+      "flag_cpp": false,
+      "overwrite": false,
+      "backup": false,
+      "package_name": "et_md3",
+      "module_location_relative": ".",
+      "module_name": "verletlist",
+      "module_srcdir": "et_md3/verletlist",
+      "import_lib": "et_md3.verletlist",
+      "templates": [
+        "submodule-py",
+        "submodule-py-test"
+      ]
+    },
+    "API.rst": "\n.. automodule:: et_md3.verletlist\n   :members:\n\n",
+    "et_md3/__init__.py": "\nimport et_md3.verletlist"
+  },
+  "potentials": {
+    "context": {
+      "verbosity": 1,
+      "project_path": "/Users/etijskens/software/dev/workspace/et-MD3",
+      "default_project_path": true,
+      "clear_log": false,
+      "_cfg_filename": "micc3.cfg",
+      "_cfg_dir": "/Users/etijskens/.micc2",
+      "invoked_subcommand": "add",
+      "overwrite_preferences": {},
+      "add_name": "potentials",
+      "flag_cli": false,
+      "flag_clisub": false,
+      "flag_py": true,
+      "flag_f90": false,
+      "flag_cpp": false,
+      "overwrite": false,
+      "backup": false,
+      "package_name": "et_md3",
+      "module_location_relative": ".",
+      "module_name": "potentials",
+      "module_srcdir": "et_md3/potentials",
+      "import_lib": "et_md3.potentials",
+      "templates": [
+        "submodule-py",
+        "submodule-py-test"
+      ]
+    },
+    "API.rst": "\n.. automodule:: et_md3.potentials\n   :members:\n\n",
+    "et_md3/__init__.py": "\nimport et_md3.potentials"
+  },
+  "verletlist/vlbuilders": {
+    "context": {
+      "verbosity": 1,
+      "project_path": "/Users/etijskens/software/dev/workspace/et-MD3",
+      "default_project_path": true,
+      "clear_log": false,
+      "_cfg_filename": "micc3.cfg",
+      "_cfg_dir": "/Users/etijskens/.micc2",
+      "invoked_subcommand": "add",
+      "overwrite_preferences": {},
+      "add_name": "verletlist/vlbuilders",
+      "flag_cli": false,
+      "flag_clisub": false,
+      "flag_py": true,
+      "flag_f90": false,
+      "flag_cpp": false,
+      "overwrite": false,
+      "backup": false,
+      "package_name": "et_md3",
+      "module_location_relative": "verletlist",
+      "module_name": "vlbuilders",
+      "module_srcdir": "et_md3/verletlist/vlbuilders",
+      "import_lib": "et_md3.verletlist.vlbuilders",
+      "templates": [
+        "submodule-py",
+        "submodule-py-test"
+      ]
+    },
+    "API.rst": "\n.. automodule:: et_md3.verletlist.vlbuilders\n   :members:\n\n",
+    "et_md3/__init__.py": "\nimport et_md3.verletlist.vlbuilders"
+  }
+}
