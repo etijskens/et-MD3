@@ -244,12 +244,13 @@ def test_scale_forces():
         assert np,all(atms.a[i,:] == (1.0 + i)/4.0)
 
 
+
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_scale_forces
+    the_test_you_want_to_debug = test_atoms_default
 
     print("__main__ running", the_test_you_want_to_debug)
     the_test_you_want_to_debug()

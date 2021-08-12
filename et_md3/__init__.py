@@ -9,6 +9,19 @@ Top-level package for et_md3.
 
 __version__ = "0.1.0"
 
+try:
+    import et_md3.atoms.cpp
+except ModuleNotFoundError as e:
+    # Try to build this binary extension:
+    from pathlib import Path
+    import click
+    from et_micc2.project import auto_build_binary_extension
+    msg = auto_build_binary_extension(Path(__file__).parent, 'atoms/cpp')
+    if not msg:
+        import et_md3.atoms.cpp
+    else:
+        click.secho(msg, fg='bright_red')
+
 import et_md3.time
 
 import et_md3.verletlist.vlbuilders

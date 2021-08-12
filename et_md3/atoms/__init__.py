@@ -11,6 +11,8 @@ A submodule for representing atoms
 import numpy as np
 import matplotlib.pyplot as plt
 
+import et_md3.atoms.cpp
+
 
 class Atoms:
     """Class for a collection of atoms.
@@ -232,20 +234,31 @@ class Atoms:
             print(f'i={i}, r={self.r[i,:]}')
 
 
-    def scale_forces(self):
+    def scale_forces(self, impl='cpp'):
         """Convert the forces (as computed by the potential) to accelerations.
 
         F = ma, a currently contains the forces, so we must divide by m to obtain the
         accelerations.
+
+        impl='cpp' selects a cpp implementation that avoids the python loop if self.m is
+        an array rather than a scalar.
         """
         # Note: np.double and float are not the same type.
         if isinstance(self.m, (float, np.double, np.single)): # all atoms have the same mass.
             self.a /= self.m
 
         elif self.m.shape[0] == self.n: # atoms have different masses.
-            # todo: efficiency issue: python loop
-            for i in range(self.n):
-                self.a[i, :] /= self.m[i]
-
+            if impl == 'cpp':
+                if self.dtype in (float, np.double):
+                    et_md3.atoms.cpp.scale_forces_dp(self.a, self.m)
+                elif self.dtype is np.single:
+                    et_md3.atoms.cpp.scale_forces_sp(self.a, self.m)
+                else:
+                    raise NotImplementedError(f'unknown dtype: {self.dtype}')
+            elif impl == 'py':
+                for i in range(self.n):
+                    self.a[i, :] /= self.m[i]
+            else:
+                raise ValueError(f'Unknown impl: {impl}, expecting `py`, `cpp`.')
         else:
             raise ValueError(f'atoms.m has wrong dimension ({self.m.shape[0]} instead of {self.n}).')
