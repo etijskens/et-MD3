@@ -31,6 +31,7 @@ def test_VelocityVerlet_no_motion():
         assert np.all(vv.v == 0.0)
         assert np.all(vv.a == 0.0)
 
+
 def test_VelocityVerlet_constant_velocity():
     atoms = Atoms(3,zero=True)
     atoms.v[0,:] = np.array([1,0,0], dtype=float)
