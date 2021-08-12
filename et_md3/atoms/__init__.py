@@ -20,7 +20,7 @@ class Atoms:
         and they are not initialized.
     :param float|np.single dtype: type of the atom arrays, float (np.double) by default.
     """
-    def __init__(self, n=10, dtype=float, zero=False):
+    def __init__(self, n=10, dtype=float, m=None, zero=False):
         accepted_dtypes = (float,np.single)
         if dtype in accepted_dtypes:
             self.dtype = dtype
@@ -31,12 +31,18 @@ class Atoms:
             self.r = np.zeros((n,3), dtype=dtype)
             self.v = np.zeros((n,3), dtype=dtype)
             self.a = np.zeros((n,3), dtype=dtype)
-            self.m = np.ones ( n   , dtype=dtype)
+            if m is None:
+                self.m = np.ones (n, dtype=dtype)
+            else:
+                self.m = m
         else:
             self.r = np.empty((n,3), dtype=dtype)
             self.v = np.empty((n,3), dtype=dtype)
             self.a = np.empty((n,3), dtype=dtype)
-            self.m = np.empty( n   , dtype=dtype)
+            if m is None:
+                self.m = np.empty( n   , dtype=dtype)
+            else:
+                self.m = m
 
         self.arrays = [self.r, self.v, self.a, self.m]
 
@@ -226,17 +232,18 @@ class Atoms:
             print(f'i={i}, r={self.r[i,:]}')
 
 
-    def compute_accelerations(self):
+    def scale_forces(self):
         """Convert the forces (as computed by the potential) to accelerations.
 
         F = ma, a currently contains the forces, so we must divide by m to obtain the
         accelerations.
         """
-        if self.m.shape[0] == 1: # all atoms have the same mass.
-            for i in range(self.n):
-                self.a[i, :] /= self.m[0]
+        # Note: np.double and float are not the same type.
+        if isinstance(self.m, (float, np.double, np.single)): # all atoms have the same mass.
+            self.a /= self.m
 
         elif self.m.shape[0] == self.n: # atoms have different masses.
+            # todo: efficiency issue: python loop
             for i in range(self.n):
                 self.a[i, :] /= self.m[i]
 

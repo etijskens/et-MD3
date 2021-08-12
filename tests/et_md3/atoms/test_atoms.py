@@ -229,12 +229,27 @@ def test_apply_PBC():
     assert not moved
 
 
+def test_scale_forces():
+    n = 5
+    atms = atoms.Atoms(n)
+    for i in range(n):
+        atms.a[i,:] = 1.0 + i
+    atms.m = 2.0 * np.ones_like(atms.a)
+    atms.scale_forces()
+    for i in range(n):
+        assert np,all(atms.a[i,:] == (1.0 + i)/2.0)
+    atms.m = 2.0
+    atms.scale_forces()
+    for i in range(n):
+        assert np,all(atms.a[i,:] == (1.0 + i)/4.0)
+
+
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_plot_8
+    the_test_you_want_to_debug = test_scale_forces
 
     print("__main__ running", the_test_you_want_to_debug)
     the_test_you_want_to_debug()
