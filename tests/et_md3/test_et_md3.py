@@ -2,6 +2,9 @@
 
 """Tests for et_md3 package."""
 
+import sys
+sys.path.insert(0,'.')
+
 import et_md3
 
 
