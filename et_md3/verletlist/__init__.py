@@ -111,12 +111,9 @@ class VL:
         return vli
 
 
-    def has(self, ij):
-        """Test if the verlet list of atom i contains atom j, ij = (i,j).
-
-        :param tuple ij: (i,j)
+    def has(self, i, j):
+        """Test if the verlet list of atom i contains atom j.
         """
-        i, j = ij
         return j in self.verlet_list(i)
 
 

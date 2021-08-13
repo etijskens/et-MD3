@@ -22,6 +22,7 @@ def test_vl2pairs():
     n_atoms = len(x)
     r = np.empty((n_atoms,3))
     msg = ['x00','0x0','00x']
+
     for impl in ('py', 'cpp'):
         VerletList = et_md3.verletlist.implementation(impl=impl)
         for ir in range(3):
@@ -41,25 +42,34 @@ def test_neighbours():
     n_atoms = len(x)
     r = np.empty((n_atoms,3))
     msg = ['x00','0x0','00x']
-    for ir in range(3):
-        r[:,:] = 0.0
-        r[:,ir] = x
-        print(f'*** {msg[ir]} ***')
 
-        VerletList = et_md3.verletlist.implementation(impl='py')
-        vl = VerletList(cutoff=2.0)
-        build_simple(vl, r)
-        print(vl.vl_size[0])
-        assert vl.vl_size[0] == 2
-        vl0 = vl.verlet_list(0)
-        print(vl0)
-        assert vl0[0] == 1
-        assert vl0[1] == 2
+    for impl in ('py', 'cpp'):
+        VerletList = et_md3.verletlist.implementation(impl=impl)
+
+        for ir in range(3):
+            r[:,:] = 0.0
+            r[:,ir] = x
+            print(f'*** {impl} {msg[ir]} ***')
+
+            vl = VerletList(2.0)
+            build_simple(vl, r)
+            if impl == 'py':
+                print(vl.vl_size[0])
+                assert vl.vl_size[0] == 2
+                vl0 = vl.verlet_list(0)
+                print(vl0)
+                assert vl0[0] == 1
+                assert vl0[1] == 2
+            elif impl == 'cpp':
+                nc0 =  vl.ncontacts(0)
+                assert nc0 == 2
+                assert vl.contact(0, 0) == 1
+                assert vl.contact(0, 1) == 2
 
 
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_vl2pairs
+    the_test_you_want_to_debug = test_neighbours
 
     print(f'__main__ running {the_test_you_want_to_debug}')
     the_test_you_want_to_debug()
