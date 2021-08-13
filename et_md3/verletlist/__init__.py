@@ -27,8 +27,8 @@ def implementation(impl=None):
         VerletList = VL
 
     elif impl == 'cpp':
-        import et_md3.verletlist.c_vl
-        VerletList = et_md3.verletlist.c_vl.VL
+        import et_md3.verletlist.verletlist_cpp
+        VerletList = et_md3.verletlist.verletlist_cpp.VL
 
     else:
         raise ValueError(f'Unknown VerletList implementation: {impl}.')
@@ -53,9 +53,9 @@ class VL:
         * vl[i,0] = ni is the number of atoms in Verlet list of atom i.
         * vl[i,1:ni+1] contains the indices of the ni neighbouring atoms.
 
-        This 2D data structure is linearised_ to facilitate passing the same
+        This 2D data structure is linearised to facilitate passing the same
         linear data structure to Fortran and C++ in an efficient way. The
-        linearised_ data structure consist of:
+        linearised data structure consist of:
 
         *   vl_list : 1D numpy array containing all Verlet lists, one after the other,
                       i.e. vl(0), vl(1), ..., vl(natoms-1), with natoms the total
@@ -65,28 +65,33 @@ class VL:
         *   cl_offset : 1D numpy array containing the starting position of all the
                       Verlet lists in the cl_list array.
         """
-        self.cutoff = cutoff
+        self.cutoff_ = cutoff
         self.vl2d = None
         self.debug = False
 
 
-    @property
+    # not a @property because we want the Python and C++ implementations to have the same interface.
     def natoms(self):
-        if self.linearised_():
+        if self.linearised():
             return len(self.vl_size)
         else:
             return len(self.vl2d)
 
 
+    def cutoff(self):
+        """Return the cutoff distance."""
+        return self.cutoff_
+
+
     def __str__(self):
         s = "verlet lists:\n"
         max_nneighbours = 0
-        for i in range(self.natoms):
+        for i in range(self.natoms()):
             vli = self.verlet_list(i)
             s += f'({i}): {vli}\n'
             max_nneighours = max(len(vli), max_nneighbours)
 
-        s += f'max elements: {max_nneighbours}, linearised_={self.linearised_()}\n'
+        s += f'max elements: {max_nneighbours}, linearised={self.linearised()}\n'
         return s
 
 
@@ -95,7 +100,7 @@ class VL:
 
         :return: view of a numpy array
         """
-        if self.linearised_():
+        if self.linearised():
             offset = self.vl_offset[i]
             nneighbours = self.vl_size[i]
             vli = self.vl_list[offset:offset + nneighbours]
@@ -118,8 +123,8 @@ class VL:
     # --------------------------------------------------------------------------------
     # VL Methods for internal use, and use by VL builders
     # --------------------------------------------------------------------------------
-    def add_(self, i, j):
-        """add_ pair (i,j) to the Verlet list."""
+    def add(self, i, j):
+        """add pair (i,j) to the Verlet list."""
 
         # increase the count of atom i
         n = self.vl2d[i][0]
@@ -133,19 +138,19 @@ class VL:
             # grow current array
             self.vl2d[i][1] = np.append(self.vl2d[i][1], np.empty(VL.nneighbours, dtype=int))
 
-        # add_ the neighbour:
+        # add the neighbour:
         self.vl2d[i][1][n] = j
 
-    def linearised_(self):
+    def linearised(self):
         return not self.vl_list is None
 
 
-    def linearise_(self, keep2d=False):
-        """linearise_ the Verlet list.
+    def linearise(self, keep2d=False):
+        """linearise the Verlet list.
 
 		:param bool keep2d: keep self.vl2d or not. True is used for testing purposes.
 		"""
-        natoms = self.natoms
+        natoms = self.natoms()
         nneighbours_total = 0
         for i in range(natoms):
             nneighbours_total += self.vl2d[i][0]
@@ -170,7 +175,7 @@ class VL:
     #--------------------------------------------------------------------------------
     # VL Methods for internal use
     # --------------------------------------------------------------------------------
-    def allocate_2d_(self, natoms):
+    def allocate_2d(self, natoms):
         """allocate and initialize the 2D data structure.
 
         :param natoms: number of atoms to accomodate
@@ -189,7 +194,7 @@ class VL:
                 # reset the neighbour counters
                 for i in range(len_vl2d):
                     self.vl2d[i][0] = 0
-                # too small, add_ elements at the end
+                # too small, add elements at the end
                 self.vl2d.extend((natoms - len_vl2d) * [[0, None]])
             elif len_vl2d > natoms:
                 # too large, shrink
@@ -226,11 +231,11 @@ class VL:
     #     x = r[0]
     #     y = r[1]
     #     z = r[2]
-    #     if not grid.linearised_():
-    #         raise ValueError("The grid list must be built and linearised_ first.")
+    #     if not grid.linearised():
+    #         raise ValueError("The grid list must be built and linearised first.")
     #
     #     self.allocate_2d(len(x))
-    #     rc2 = self.cutoff ** 2
+    #     rc2 = self.cutoff_ ** 2
     #     # loop over all cells
     #     for m in range(grid.K[2]):
     #         for l in range(grid.K[1]):
@@ -243,7 +248,7 @@ class VL:
     #                     for j in cklm[ia + 1:]:
     #                         rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
     #                         if rij2 <= rc2:
-    #                             self.add_(i, j)
+    #                             self.add(i, j)
     #                 # loop over neighbouring cells. If the cell does not exist an IndexError is raised
     #                 for klm2 in ((k + 1, l, m)  # one ahead in the x-direction
     #                              , (k - 1, l + 1, m)  # three ahead in the y-direction
@@ -269,9 +274,9 @@ class VL:
     #                             for j in cklm2:
     #                                 rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
     #                                 if rij2 <= rc2:
-    #                                     self.add_(i, j)
+    #                                     self.add(i, j)
     #
-    #     self.linearise_(keep2d=keep2d)
+    #     self.linearise(keep2d=keep2d)
 
     # MOVE TO POTENTIAL ...
     # def compute_interaction_forces(self, r, a, potential):
@@ -329,20 +334,20 @@ def vl2set(vl):
     """Convert VerletList object into set of pairs."""
     pairs = set()
     if isinstance(vl, VL):
-        for i in range(vl.natoms):
+        for i in range(vl.natoms()):
             vli = vl.verlet_list(i)
             n_pairs_i = len(vli)
             for j in vli:
                 pair = (i, j) if i < j else (j, i)
                 # print(pair)
                 pairs.add(pair)
-    # else:
-    #     # C++ implementation of Verlet list: VList
-    #     for i in range(vl.natoms()):
-    #         for k in range(vl.ncontacts(i)):
-    #             j = vl.contact(i, k)
-    #             pair = (i, j) if i < j else (j, i)
-    #             # print(pair)
-    #             pairs.add_(pair)
+    else:
+        # C++ implementation of Verlet list: VList
+        for i in range(vl.natoms()):
+            for k in range(vl.ncontacts(i)):
+                j = vl.contact(i, k)
+                pair = (i, j) if i < j else (j, i)
+                # print(pair)
+                pairs.add(pair)
 
     return pairs

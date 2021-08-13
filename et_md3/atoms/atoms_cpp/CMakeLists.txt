@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Build C++ module et_md3.atoms.cpp
+# Build C++ module et_md3.atoms.atoms_cpp
 #   > cd _cmake_build
 # For a clean build:
 #   > rm -rf *
@@ -21,7 +21,7 @@
     cmake_minimum_required(VERSION 3.4)
   # Find pybind11_DIR, if python can be found...
   # (that is we assume that the virtual environment is activated)
-    project(cpp CXX)
+    project(atoms_cpp CXX)
     find_program(
         PYTHON_EXECUTABLE
         NAMES python
@@ -82,10 +82,10 @@ include_directories(
 
 #<< begin boilerplate code
   # Create the target:
-    pybind11_add_module(cpp cpp.cpp)
+    pybind11_add_module(atoms_cpp atoms_cpp.cpp)
 
     install(
-        FILES       "_cmake_build/cpp${PYTHON_MODULE_EXTENSION}"
+        FILES       "_cmake_build/atoms_cpp${PYTHON_MODULE_EXTENSION}"
         DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/.."
     )
 #>> end boilerplate code

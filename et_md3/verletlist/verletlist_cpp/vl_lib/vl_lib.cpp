@@ -1,25 +1,17 @@
 /*
- *  C++ source file for module et_md.VL
+ *  C++ source file for shared library vl_lib.
  *
- *  Expose a VL class, implementing a Verlet list
+ *  The Verlet list class VL is exposed via a shared library, because
+ *  it must be accessible to other C++ implementations, not just to Python,
+ *  E.g. C++ implementations of vlbuilders, potentials, ...
  */
 
-
-// See http://people.duke.edu/~ccc14/cspy/18G_C++_Python_pybind11.html for examples on how to use pybind11.
-// The example below is modified after http://people.duke.edu/~ccc14/cspy/18G_C++_Python_pybind11.html#More-on-working-with-numpy-arrays
 #include "vl_lib.hpp"
 
-VL::VL
-  ( std::size_t natoms
-  , double cutoff
-  )
-  : cutoff_(cutoff)
-{
-    this->reset(natoms);
-}
+VL::VL( double cutoff) : cutoff_(cutoff) {}
 
 void
-VL::reset( std::size_t n_atoms )
+VL::allocate_2d( std::size_t n_atoms )
 {
     this->vl2d_.resize(n_atoms);
 

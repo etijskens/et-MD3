@@ -28,7 +28,7 @@ scale_forces
 }
 
 
-PYBIND11_MODULE(cpp, m)
+PYBIND11_MODULE(atoms_cpp, m)
 {// optional module doc-string
     m.doc() = "pybind11 cpp plugin"; // optional module docstring
  // list the functions you want to expose:

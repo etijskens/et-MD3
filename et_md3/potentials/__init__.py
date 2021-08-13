@@ -39,7 +39,7 @@ class Potential:
 		:param np.ndarray r: atom position coordinates
 		:param np.ndarray a: atom acceleration coordinates
 		"""
-		for i in range(vl.natoms):
+		for i in range(vl.natoms()):
 			o = vl.vl_offset[i]
 			n = vl.vl_size[i]
 			ri = r[i, :]
@@ -61,7 +61,7 @@ class Potential:
 		:return: interaction energy, epot.
 		"""
 		epot = 0.0
-		for i in range(vl.natoms):
+		for i in range(vl.natoms()):
 			o = vl.vl_offset[i]
 			n = vl.vl_size[i]
 			for k in range(o, o + n):

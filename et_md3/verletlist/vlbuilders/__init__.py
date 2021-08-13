@@ -19,17 +19,18 @@ def build_simple(vl, r, keep2d=False):
     :param numpy.ndarray: Numpy array with atom position coordinates, shape = (n,3).
     :param bool keep2d: (For debugging purposes). Keep the (internal) 2D data structure.
     """
-    vl.allocate_2d_(r.shape[0])
-    rc2 = vl.cutoff ** 2
-    for i in range(vl.natoms - 1):
+    vl.allocate_2d(r.shape[0])
+    rc2 = vl.cutoff() ** 2
+    natoms = vl.natoms()
+    for i in range(natoms - 1):
         ri = r[i, :]
-        for j in range(i + 1, vl.natoms):
+        for j in range(i + 1, natoms):
             rj = r[j, :]
             rij = rj - ri
             rij2 = np.dot(rij, rij)
             if rij2 <= rc2:
-                vl.add_(i, j)
-    vl.linearise_(keep2d=keep2d)
+                vl.add(i, j)
+    vl.linearise(keep2d)
 
 
 def build(vl, r, keep2d=False):
@@ -46,17 +47,18 @@ def build(vl, r, keep2d=False):
     x = r[:, 0]
     y = r[:, 1]
     z = r[:, 2]
-    vl.allocate_2d_(len(x))
-    rc2 = vl.cutoff ** 2
+    vl.allocate_2d(len(x))
+    rc2 = vl.cutoff() ** 2
 
-    ri2 = np.empty((vl.natoms,), dtype=r.dtype)
+    natoms = vl.natoms()
+    ri2 = np.empty((natoms,), dtype=r.dtype)
     rij = np.empty_like(r)
-    for i in range(vl.natoms - 1):
+    for i in range(natoms - 1):
         rij[i + 1:, :] = r[i + 1:, :] - r[i, :]
         if vl.debug:
             ri2 = 0
         ri2[i + 1:] = np.einsum('ij,ij->i', rij[i + 1:, :], rij[i + 1:, :])
-        for j in range(i + 1, vl.natoms):
+        for j in range(i + 1, natoms):
             if ri2[j] <= rc2:
-                vl.add_(i, j)
-    vl.linearise_(keep2d)
+                vl.add(i, j)
+    vl.linearise(keep2d)

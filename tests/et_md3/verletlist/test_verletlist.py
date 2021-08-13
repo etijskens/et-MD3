@@ -22,16 +22,17 @@ def test_vl2pairs():
     n_atoms = len(x)
     r = np.empty((n_atoms,3))
     msg = ['x00','0x0','00x']
-    for ir in range(3):
-        r[:,:] = 0.0
-        r[:,ir] = x
-        print(f'*** {msg[ir]} ***')
+    for impl in ('py', 'cpp'):
+        VerletList = et_md3.verletlist.implementation(impl=impl)
+        for ir in range(3):
+            r[:,:] = 0.0
+            r[:,ir] = x
+            print(f'*** {impl} {msg[ir]} ***')
 
-        VerletList = et_md3.verletlist.implementation(impl='py')
-        vl = VerletList(cutoff=2.0)
-        build_simple(vl, r, keep2d=True)
-        print(vl)
-        print(et_md3.verletlist.vl2set(vl))
+            vl = VerletList(2.0)
+            build_simple(vl, r, keep2d=True)
+            print(vl)
+            print(et_md3.verletlist.vl2set(vl))
 
 
 def test_neighbours():
@@ -58,7 +59,7 @@ def test_neighbours():
 
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_neighbours
+    the_test_you_want_to_debug = test_vl2pairs
 
     print(f'__main__ running {the_test_you_want_to_debug}')
     the_test_you_want_to_debug()

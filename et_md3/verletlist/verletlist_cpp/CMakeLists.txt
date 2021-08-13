@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Build C++ module et_md.vlist
+# Build C++ module et_md3.verletlist.verletlist_cpp
 #   > cd _cmake_build
 # For a clean build:
 #   > rm -rf *
@@ -83,10 +83,10 @@ link_libraries(
 
 #<< begin boilerplate code
   # Create the target:
-    pybind11_add_module(cpp cpp.cpp)
+    pybind11_add_module(verletlist_cpp verletlist_cpp.cpp)
 
     install(
-        FILES       "_cmake_build/cpp${PYTHON_MODULE_EXTENSION}"
+        FILES       "_cmake_build/verletlist_cpp${PYTHON_MODULE_EXTENSION}"
         DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/.."
     )
 #>> end boilerplate code

@@ -10,7 +10,7 @@ Top-level package for et_md3.
 __version__ = "0.1.0"
 
 try:
-    import et_md3.verletlist.cpp
+    import et_md3.verletlist.verletlist_cpp
 except ModuleNotFoundError as e:
     # Try to build this binary extension:
     from pathlib import Path
@@ -18,12 +18,12 @@ except ModuleNotFoundError as e:
     from et_micc2.project import auto_build_binary_extension
     msg = auto_build_binary_extension(Path(__file__).parent, 'verletlist/cpp')
     if not msg:
-        import et_md3.verletlist.cpp
+        import et_md3.verletlist.verletlist_cpp
     else:
         click.secho(msg, fg='bright_red')
 
 try:
-    import et_md3.atoms.cpp
+    import et_md3.atoms.atoms_cpp
 except ModuleNotFoundError as e:
     # Try to build this binary extension:
     from pathlib import Path
@@ -31,7 +31,7 @@ except ModuleNotFoundError as e:
     from et_micc2.project import auto_build_binary_extension
     msg = auto_build_binary_extension(Path(__file__).parent, 'atoms/cpp')
     if not msg:
-        import et_md3.atoms.cpp
+        import et_md3.atoms.atoms_cpp
     else:
         click.secho(msg, fg='bright_red')
 

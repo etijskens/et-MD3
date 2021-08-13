@@ -2,33 +2,33 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for C++ module et_md3.verletlist.cpp.
+Tests for C++ module et_md3.atoms.cpp.
 """
 
 import sys
-sys.path.insert(0,'.')
 
 import numpy as np
 
-import et_md3.verletlist.cpp
+import et_md3.atoms
+import et_md3.atoms.atoms_cpp
 
-
-def test_cpp_add():
-    x = np.array([0,1,2,3,4],dtype=float)
-    shape = x.shape
-    y = np.ones (shape,dtype=float)
-    z = np.zeros(shape,dtype=float)
-    expected_z = x + y
-    result = et_md3.verletlist.cpp.add(x,y,z)
-    assert (z == expected_z).all()
-
+def test_scale_forces():
+    atms = et_md3.atoms.Atoms(5)
+    for impl in ('cpp', 'py'):
+        for i in range(5):
+            atms.a[i,:] = 1+i
+            atms.m[i]   = 1+i
+        print(atms.a)
+        atms.scale_forces(impl=impl)
+        print(atms.a)
+        assert np.all(atms.a == 1.)
 
 #===============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 #===============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_cpp_add
+    the_test_you_want_to_debug = test_scale_forces
 
     print(f"__main__ running {the_test_you_want_to_debug} ...")
     the_test_you_want_to_debug()

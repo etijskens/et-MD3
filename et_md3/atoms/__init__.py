@@ -11,7 +11,7 @@ A submodule for representing atoms
 import numpy as np
 import matplotlib.pyplot as plt
 
-import et_md3.atoms.cpp
+import et_md3.atoms.atoms_cpp
 
 
 class Atoms:
@@ -250,9 +250,9 @@ class Atoms:
         elif self.m.shape[0] == self.n: # atoms have different masses.
             if impl == 'cpp':
                 if self.dtype in (float, np.double):
-                    et_md3.atoms.cpp.scale_forces_dp(self.a, self.m)
+                    et_md3.atoms.atoms_cpp.scale_forces_dp(self.a, self.m)
                 elif self.dtype is np.single:
-                    et_md3.atoms.cpp.scale_forces_sp(self.a, self.m)
+                    et_md3.atoms.atoms_cpp.scale_forces_sp(self.a, self.m)
                 else:
                     raise NotImplementedError(f'unknown dtype: {self.dtype}')
             elif impl == 'py':
