@@ -103,18 +103,19 @@ def test_build_simple_2b():
     n_atoms = len(x)
     r = np.empty((n_atoms,3))
     msg = ['x00','0x0','00x']
-    for ir in range(3):
-        r[:,:] = 0.0
-        r[:,ir] = x
-        print(f'*** {msg[ir]} ***')
+    for impl in ('py', 'cpp'):
+        VerletList = et_md3.verletlist.implementation(impl=impl)
+        for ir in range(3):
+            r[:,:] = 0.0
+            r[:,ir] = x
+            print(f'*** {msg[ir]} ***')
 
-        VerletList = et_md3.verletlist.implementation(impl='py')
-        vl = VerletList(cutoff=2.0)
-        et_md3.verletlist.vlbuilders.build_simple(vl, r, keep2d=True)
-        # print(vl)
-        pairs = et_md3.verletlist.vl2set(vl)
-        expected = {(0,1),(0,2),(1,2),(1,3),(2,3),(2,4),(3,4)}
-        assert pairs == expected
+            vl = VerletList(2.0)
+            et_md3.verletlist.vlbuilders.build_simple(vl, r, keep2d=True)
+            # print(vl)
+            pairs = et_md3.verletlist.vl2set(vl)
+            expected = {(0,1),(0,2),(1,2),(1,3),(2,3),(2,4),(3,4)}
+            assert pairs == expected
 
 def test_build_1():
     """Verify VerletList.build against VerletList.build_simple."""
@@ -124,24 +125,32 @@ def test_build_1():
     n_atoms = len(x)
     r = np.empty((n_atoms,3))
     msg = ['x00','0x0','00x']
-    for ir in range(3):
-        r[:,:] = 0.0
-        r[:,ir] = x
-        print(f'*** {msg[ir]} ***')
+    for impl in ('py', 'cpp'):
+        VerletList = et_md3.verletlist.implementation(impl=impl)
+        for ir in range(3):
+            r[:,:] = 0.0
+            r[:,ir] = x
+            print(f'*** {impl} {msg[ir]} ***')
 
-        VerletList = et_md3.verletlist.implementation(impl='py')
-        vl = VerletList(cutoff=cutoff)
-        et_md3.verletlist.vlbuilders.build(vl, r)
-        print(vl)
-        pairs = et_md3.verletlist.vl2set(vl)
+            vl = VerletList(cutoff)
+            et_md3.verletlist.vlbuilders.build(vl, r)
+            if impl == 'py':
+                print(vl)
+            else:
+                vl.print()
+            pairs = et_md3.verletlist.vl2set(vl)
 
-        vlsimple = VerletList(cutoff=cutoff)
-        et_md3.verletlist.vlbuilders.build_simple(vlsimple, r)
-        print(vlsimple)
-        expected = et_md3.verletlist.vl2set(vlsimple)
-        assert pairs == expected
-        assert np.all(vl.vl_size == np.array([2,2,2,1,0]))
-        assert np.all(vl.vl_list == np.array([1,2,2,3,3,4,4]))
+            vlsimple = VerletList(cutoff)
+            et_md3.verletlist.vlbuilders.build_simple(vlsimple, r)
+            if impl == 'py':
+                print(vlsimple)
+            else:
+                vlsimple.print()
+            expected = et_md3.verletlist.vl2set(vlsimple)
+            assert pairs == expected
+            if impl == 'py':
+                assert np.all(vl.vl_size == np.array([2,2,2,1,0]))
+                assert np.all(vl.vl_list == np.array([1,2,2,3,3,4,4]))
 
 
 def test_build_2():
@@ -150,17 +159,24 @@ def test_build_2():
     atoms = et_md3.atoms.Atoms()
     atoms.lattice_positions(upper_corner=(5,5,5))
 
-    VerletList = et_md3.verletlist.implementation(impl='py')
-    vl = VerletList(cutoff=cutoff)
-    et_md3.verletlist.vlbuilders.build(vl, atoms.r)
-    print(vl)
-    pairs = et_md3.verletlist.vl2set(vl)
+    for impl in ('py', 'cpp'):
+        VerletList = et_md3.verletlist.implementation(impl=impl)
+        vl = VerletList(cutoff)
+        et_md3.verletlist.vlbuilders.build(vl, atoms.r)
+        if impl == 'py':
+            print(vl)
+        else:
+            vl.print()
+        pairs = et_md3.verletlist.vl2set(vl)
 
-    vlsimple = VerletList(cutoff=cutoff)
-    et_md3.verletlist.vlbuilders.build_simple(vlsimple, atoms.r)
-    print(vlsimple)
-    pairs_simple = et_md3.verletlist.vl2set(vlsimple)
-    assert pairs == pairs_simple
+        vlsimple = VerletList(cutoff)
+        et_md3.verletlist.vlbuilders.build_simple(vlsimple, atoms.r)
+        if impl == 'py':
+            print(vlsimple)
+        else:
+            vlsimple.print()
+        pairs_simple = et_md3.verletlist.vl2set(vlsimple)
+        assert pairs == pairs_simple
 
 
 # ==============================================================================
@@ -168,7 +184,7 @@ def test_build_2():
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_build_simple_2
+    the_test_you_want_to_debug = test_build_2
 
     the_test_you_want_to_debug()
     print("-*# finished #*-")

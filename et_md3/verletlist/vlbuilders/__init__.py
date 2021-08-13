@@ -8,6 +8,8 @@ A submodule for Verlet list builders
 """
 import numpy as np
 
+import et_md3.verletlist
+
 
 def build_simple(vl, r, keep2d=False):
     """Build a Verlet list from atom positions.
@@ -55,8 +57,10 @@ def build(vl, r, keep2d=False):
     rij = np.empty_like(r)
     for i in range(natoms - 1):
         rij[i + 1:, :] = r[i + 1:, :] - r[i, :]
-        if vl.debug:
-            ri2 = 0
+
+        if isinstance(vl, et_md3.verletlist.VL):
+            if vl.debug:
+                ri2 = 0
         ri2[i + 1:] = np.einsum('ij,ij->i', rij[i + 1:, :], rij[i + 1:, :])
         for j in range(i + 1, natoms):
             if ri2[j] <= rc2:
