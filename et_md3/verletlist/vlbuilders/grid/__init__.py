@@ -101,24 +101,24 @@ class Grid:
 	The world grid indices are then obtained by adding the offset of the lower_corner of the box.
 	"""
 
-	def __init__(self, cell_size, atoms, max_atoms_per_cell=20):
+	def __init__(self, cell_size, atoms):
 		self.cell_size = cell_size
 		self.atoms = atoms
-		self.max_atoms_per_cell = max_atoms_per_cell
 
 		# Compute the grid dimensions K from the atoms box
 		self.K = np.ceil((atoms.upper_corner - atoms.lower_corner)/cell_size).astype(int)
+		self.ncells = np.prod(self.K)
 
-		self.clear()
 
-
-	def clear(self, zero=False):
+	def clear(self, zero=False, factor=2):
 		"""allocate empty 3D data structure.
 
 		:param bool zero: explicitly assign -1 to all cell list entries. Otherwise, only the
 			cell counts are zeroed.
 		"""
-		self.cl = np.empty((self.K[0], self.K[1], self.K[2], 1 + self.max_atoms_per_cell), dtype=int)
+		max_atoms_per_cell = min(factor * self.atoms.n / self.ncells, self.atoms.n)
+
+		self.cl = np.empty((self.K[0], self.K[1], self.K[2], 1 + max_atoms_per_cell), dtype=int)
 		self.cl[:, :, :, 0] = 0 # all cell lists have zero atoms
 
 		if zero:
@@ -146,13 +146,18 @@ class Grid:
 
 		:param np.array r: atom positions
 		"""
-		r = self.atoms.r if r is None else r
-		klm = (np.floor(r/self.cell_size)).astype(int)
+		factor = 2
+		try:
+			self.clear(factor=factor)
+			r = self.atoms.r if r is None else r
+			klm = (np.floor(r/self.cell_size)).astype(int)
+			# loop over atoms
+			self.n_atoms = r.shape[0]  # remember n_atoms for linearization
+			for i in range(self.n_atoms):
+				self.add(klm[i,0], klm[i,1], klm[i,2], i)
 
-		# loop over atoms
-		self.n_atoms = r.shape[0]  # remember n_atoms for linearization
-		for i in range(self.n_atoms):
-			self.add(klm[i,0], klm[i,1], klm[i,2], i)
+		except IndexError:
+			factor *= 1.5
 
 		if linearise:
 			self.linearise()

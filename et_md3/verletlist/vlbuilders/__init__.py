@@ -75,14 +75,14 @@ def build_grid(vl, r, grid, keep2d=False):
 
     :param list r: list of numpy arrays with atom coordinates: r = [x, y, z]
    """
-    x = r[0]
-    y = r[1]
-    z = r[2]
+    x = r[:,0]
+    y = r[:,1]
+    z = r[:,2]
     if not grid.linearised():
         raise ValueError("The grid list must be built and linearised first.")
 
-    self.allocate_2d(len(x))
-    rc2 = self.cutoff ** 2
+    vl.allocate_2d(len(x))
+    rc2 = vl.cutoff() ** 2
     # loop over all cells
     for m in range(grid.K[2]):
         for l in range(grid.K[1]):
@@ -95,7 +95,7 @@ def build_grid(vl, r, grid, keep2d=False):
                     for j in cklm[ia + 1:]:
                         rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
                         if rij2 <= rc2:
-                            self.add(i, j)
+                            vl.add(i, j)
                 # loop over neighbouring cells. If the cell does not exist an IndexError is raised
                 for klm2 in ( (k+1,l  ,m)   # one ahead in the x-direction
                             , (k-1,l+1,m)   # three ahead in the y-direction
@@ -121,6 +121,6 @@ def build_grid(vl, r, grid, keep2d=False):
                             for j in cklm2:
                                 rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
                                 if rij2 <= rc2:
-                                    self.add(i, j)
+                                    vl.add(i, j)
 
-    self.linearise(keep2d=keep2d)
+    vl.linearise(keep2d=keep2d)
