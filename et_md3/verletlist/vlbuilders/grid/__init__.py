@@ -116,9 +116,9 @@ class Grid:
 		:param bool zero: explicitly assign -1 to all cell list entries. Otherwise, only the
 			cell counts are zeroed.
 		"""
-		max_atoms_per_cell = min(factor * self.atoms.n / self.ncells, self.atoms.n)
+		self.max_atoms_per_cell = int(min(factor * self.atoms.n / self.ncells, self.atoms.n))
 
-		self.cl = np.empty((self.K[0], self.K[1], self.K[2], 1 + max_atoms_per_cell), dtype=int)
+		self.cl = np.empty((self.K[0], self.K[1], self.K[2], 1 + self.max_atoms_per_cell), dtype=int)
 		self.cl[:, :, :, 0] = 0 # all cell lists have zero atoms
 
 		if zero:
@@ -147,17 +147,19 @@ class Grid:
 		:param np.array r: atom positions
 		"""
 		factor = 2
-		try:
-			self.clear(factor=factor)
-			r = self.atoms.r if r is None else r
-			klm = (np.floor(r/self.cell_size)).astype(int)
-			# loop over atoms
-			self.n_atoms = r.shape[0]  # remember n_atoms for linearization
-			for i in range(self.n_atoms):
-				self.add(klm[i,0], klm[i,1], klm[i,2], i)
-
-		except IndexError:
-			factor *= 1.5
+		ok = False
+		while not ok:
+			try:
+				self.clear(factor=factor)
+				r = self.atoms.r if r is None else r
+				klm = (np.floor(r/self.cell_size)).astype(int)
+				# loop over atoms
+				self.n_atoms = r.shape[0]  # remember n_atoms for linearization
+				for i in range(self.n_atoms):
+					self.add(klm[i,0], klm[i,1], klm[i,2], i)
+				ok = True
+			except IndexError:
+				factor *= 1.5
 
 		if linearise:
 			self.linearise()
@@ -178,6 +180,7 @@ class Grid:
 
 	def linearise(self):
 		"""linearise self.cl."""
+		print(self.max_atoms_per_cell)
 
 		n_cells = self.K[0]*self.K[1]*self.K[2]
 
@@ -193,7 +196,11 @@ class Grid:
 					n_atoms_in_cell = self.cl[k, l, m, 0]
 					# copy the entire cell list at once
 					# the cell list is self.cl[k,l,1:1+n_atoms_in_cell]
-					self.cl_list[offset:offset+n_atoms_in_cell] = self.cl[k,l,m, 1:1+n_atoms_in_cell]
+					print(n_atoms_in_cell)
+					print(offset, offset + n_atoms_in_cell)
+					print(1,1+n_atoms_in_cell)
+					print(len(self.cl[k,l,m,:]))
+					self.cl_list[offset:offset+n_atoms_in_cell] = self.cl[k,l,m, 1:(1+n_atoms_in_cell)]
 					# store the current offset for the current cell list
 					rmi = row_major_index((k,l,m), self.K)
 					self.cl_offset[rmi] = offset

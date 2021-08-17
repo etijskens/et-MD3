@@ -93,7 +93,7 @@ def build_grid(vl, r, grid, keep2d=False):
                 for ia in range(natoms_in_cklm):
                     i = cklm[ia]
                     for j in cklm[ia + 1:]:
-                        rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
+                        rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2 + (z[j] - z[i]) ** 2
                         if rij2 <= rc2:
                             vl.add(i, j)
                 # loop over neighbouring cells. If the cell does not exist an IndexError is raised
@@ -119,8 +119,8 @@ def build_grid(vl, r, grid, keep2d=False):
                         # loop over all atom pairs i,j with i in cklm and j in cklm2
                         for i in cklm:
                             for j in cklm2:
-                                rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
+                                rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2 + (z[j] - z[i]) ** 2
                                 if rij2 <= rc2:
                                     vl.add(i, j)
 
-    vl.linearise(keep2d=keep2d)
+    vl.linearise(keep2d)

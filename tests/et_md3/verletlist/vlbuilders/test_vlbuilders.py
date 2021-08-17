@@ -181,35 +181,79 @@ def test_build_2():
 
 def test_build_grid():
     """Verify VerletList.build_grid against VerletList.build_simple."""
-    cutoff = 5.0
-    atoms = et_md3.atoms.Atoms()
-    atoms.lattice_positions(upper_corner=(5,5,5))
+    for co in (1,2,3,4,5):
+        cutoff = 1.0 * co
+        atoms = et_md3.atoms.Atoms()
+        atoms.lattice_positions(upper_corner=(co,co,co))
 
-    # compute grid
-    the_grid = et_md3.verletlist.vlbuilders.grid.Grid(cell_size=cutoff, atoms=atoms)
-    the_grid.build()
+        # compute grid
+        the_grid = et_md3.verletlist.vlbuilders.grid.Grid(cell_size=cutoff, atoms=atoms)
+        the_grid.build()
 
-    # build grid-based verlet list
-    for impl in ('py', 'cpp'):
-        VL = et_md3.verletlist.implementation(impl)
-        vl = VL(cutoff)
-        et_md3.verletlist.vlbuilders.build_grid(vl, the_grid.atoms.r, the_grid)
-        print(vl)
-        pairs = et_md3.verletlist.vl2set(vl)
+        # build grid-based verlet list
+        for impl in ('py','cpp'):
+            print(f'co={co}, impl={impl}')
+            VL = et_md3.verletlist.implementation(impl)
 
-        vlsimple = VL(cutoff)
-        et_md3.verletlist.vlbuilders.build_simple(vlsimple, atoms.r)
-        print(vlsimple)
-        expected = et_md3.verletlist.vl2set(vlsimple)
-        assert pairs == expected
+            vl = VL(cutoff)
+            et_md3.verletlist.vlbuilders.build_grid(vl, the_grid.atoms.r, the_grid)
+            print(vl)
+            pairs = et_md3.verletlist.vl2set(vl)
 
+            vlsimple = VL(cutoff)
+            et_md3.verletlist.vlbuilders.build_simple(vlsimple, atoms.r)
+            print(vlsimple)
+            expected = et_md3.verletlist.vl2set(vlsimple)
+
+            # for i in range(atoms.n):
+            #     print(i)
+            #     print(vl.verlet_list(i))
+            #     print(vlsimple.verlet_list(i))
+            #     print()
+
+            assert pairs == expected
+
+def test_build_grid_2():
+    """Verify VerletList.build_grid against VerletList.build_simple."""
+    for co in (1,2,3,4,5):
+        cutoff = 2.0
+        atoms = et_md3.atoms.Atoms()
+        atoms.lattice_positions(upper_corner=(co,co,co))
+
+        # compute grid
+        the_grid = et_md3.verletlist.vlbuilders.grid.Grid(cell_size=cutoff, atoms=atoms)
+        print(f'co={co}')
+        the_grid.build()
+
+        # build grid-based verlet list
+        for impl in ('py',):
+            print(f'co={co}, impl={impl}')
+            VL = et_md3.verletlist.implementation(impl)
+
+            vl = VL(cutoff)
+            et_md3.verletlist.vlbuilders.build_grid(vl, the_grid.atoms.r, the_grid)
+            print(vl)
+            pairs = et_md3.verletlist.vl2set(vl)
+
+            vlsimple = VL(cutoff)
+            et_md3.verletlist.vlbuilders.build_simple(vlsimple, atoms.r)
+            print(vlsimple)
+            expected = et_md3.verletlist.vl2set(vlsimple)
+
+            # for i in range(atoms.n):
+            #     print(i)
+            #     print(vl.verlet_list(i))
+            #     print(vlsimple.verlet_list(i))
+            #     print()
+
+            assert pairs == expected
 
 # ==============================================================================
 # The code below is for debugging a particular test in eclipse/pydev.
 # (normally all tests are run with pytest)
 # ==============================================================================
 if __name__ == "__main__":
-    the_test_you_want_to_debug = test_build_grid
+    the_test_you_want_to_debug = test_build_grid_2
 
     the_test_you_want_to_debug()
     print("-*# finished #*-")
