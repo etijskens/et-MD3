@@ -66,3 +66,61 @@ def build(vl, r, keep2d=False):
             if ri2[j] <= rc2:
                 vl.add(i, j)
     vl.linearise(keep2d)
+
+
+def build_grid(vl, r, grid, keep2d=False):
+    """Build Verlet lists using a grid.
+
+    This algorithm has complexity O(N).
+
+    :param list r: list of numpy arrays with atom coordinates: r = [x, y, z]
+   """
+    x = r[0]
+    y = r[1]
+    z = r[2]
+    if not grid.linearised():
+        raise ValueError("The grid list must be built and linearised first.")
+
+    self.allocate_2d(len(x))
+    rc2 = self.cutoff ** 2
+    # loop over all cells
+    for m in range(grid.K[2]):
+        for l in range(grid.K[1]):
+            for k in range(grid.K[0]):
+                cklm = grid.cell_list(k,l,m)
+                natoms_in_cklm = len(cklm)
+                # loop over all atom pairs in cklm
+                for ia in range(natoms_in_cklm):
+                    i = cklm[ia]
+                    for j in cklm[ia + 1:]:
+                        rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
+                        if rij2 <= rc2:
+                            self.add(i, j)
+                # loop over neighbouring cells. If the cell does not exist an IndexError is raised
+                for klm2 in ( (k+1,l  ,m)   # one ahead in the x-direction
+                            , (k-1,l+1,m)   # three ahead in the y-direction
+                            , (k  ,l+1,m)
+                            , (k+1,l+1,m)
+                            , (k-1,l-1,m+1) # nine ahead in the z-direction
+                            , (k  ,l-1,m+1)
+                            , (k+1,l-1,m+1)
+                            , (k-1,l  ,m+1)
+                            , (k  ,l  ,m+1)
+                            , (k+1,l  ,m+1)
+                            , (k-1,l+1,m+1)
+                            , (k  ,l+1,m+1)
+                            , (k+1,l+1,m+1)
+                            ):
+                    try:
+                        cklm2 = grid.cell_list(*klm2)
+                    except IndexError:
+                        pass  # Cell kl2 does not exist
+                    else:  # The else clause is executed only when the try clause does not raise an error
+                        # loop over all atom pairs i,j with i in cklm and j in cklm2
+                        for i in cklm:
+                            for j in cklm2:
+                                rij2 = (x[j] - x[i]) ** 2 + (y[j] - y[i]) ** 2
+                                if rij2 <= rc2:
+                                    self.add(i, j)
+
+    self.linearise(keep2d=keep2d)

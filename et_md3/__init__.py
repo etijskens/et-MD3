@@ -9,6 +9,8 @@ Top-level package for et_md3.
 
 __version__ = "0.1.0"
 
+import et_md3.verletlist.vlbuilders.grid
+
 try:
     import et_md3.verletlist.verletlist_cpp
 except ModuleNotFoundError as e:

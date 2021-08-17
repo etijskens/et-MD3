@@ -28,3 +28,7 @@ API
 .. include:: ../et_md3/atoms/cpp.rst
 
 .. include:: ../et_md3/verletlist/cpp.rst
+
+.. automodule:: et_md3.verletlist.vlbuilders.grid
+   :members:
+
