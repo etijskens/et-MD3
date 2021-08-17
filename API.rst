@@ -32,3 +32,9 @@ API
 .. automodule:: et_md3.verletlist.vlbuilders.grid
    :members:
 
+
+.. automodule:: et_md3.verletlist.vlbuilders.hilbertgrid
+   :members:
+
+
+.. include:: ../et_md3/verletlist/vlbuilders/hilbertgrid/spatialsorting.rst
