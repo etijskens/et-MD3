@@ -604,13 +604,12 @@ build_vl
         }
      // compute the cell indices of central cell's
         hilbert::h2ijk(h_central, ijk_central);
-        //std::cout<<"h_central:"<<h_central<<" ijk_central["<<ijk_central[0]<<" "<<ijk_central[1]<<" "<<ijk_central[2]<<"]"<<std::endl;
+//        std::cout<<" _central:"<<h_central<<" ijk_central["<<ijk_central[0]<<" "<<ijk_central[1]<<" "<<ijk_central[2]<<"]"<<std::endl;
      // compute the cell indices of all the neighbouring cells
         for( std::size_t i=0; i<13; ++i)
         for( std::size_t j=0; j< 3; ++j) {
             ijk_nb[i][j] = ijk_central[j] + ijk_delta[i][j];
         }
-
      // note that the ijk_delta stencil may refer to nonexisting cells (outside the box)
 
      // ijk_central-ijk_central pairs
@@ -644,7 +643,7 @@ build_vl
             ) // Otherwise the cell is outside the box
             {
                 H_t h_nb = hilbert::ijk2h(ijk_nb[nb][0], ijk_nb[nb][1], ijk_nb[nb][2]);
-                //std::cout<<"h_nb:"<<h_nb<<" ijk_nb["<<ijk_nb[nb][0]<<' '<<ijk_nb[nb][1]<<' '<<ijk_nb[nb][2]<<"]"<<std::endl;
+                std::cout<<"h_nb:"<<h_nb<<" ijk_nb["<<ijk_nb[nb][0]<<' '<<ijk_nb[nb][1]<<' '<<ijk_nb[nb][2]<<"]"<<std::endl;
                 std::size_t offset_nb = a_hl_offset[h_nb];
                 std::size_t natoms_nb = a_hl_natoms[h_nb];
                 for( std::size_t i = offset_central; i <offset_central + natoms_central; ++i)

@@ -14,22 +14,31 @@ from Hilbert indices to the number of atoms in the cell. A grid list is no longe
 """
 import numpy as np
 
-try:
-    import et_md.hilbert
-except ModuleNotFoundError as e:
-    # Try to build this binary extension:
-    from pathlib import Path
-    import click
-    from et_micc2.project import auto_build_binary_extension
-    msg = auto_build_binary_extension(Path(__file__).parent, 'hilbert')
-    if not msg:
-        import et_md.hilbert
-    else:
-        click.secho(msg, fg='bright_red')
+import et_md3.verletlist
+import et_md3.verletlist.vlbuilders.hilbertgrid.spatialsorting
+from math import sqrt
 
-hb = et_md3.hilbert
+# spatialsorting = et_md3.verletlist.vlbuilders.hilbertgrid.spatialsorting
 
-class SortedGrid:
+def hilbert_cube(k):
+    """Find the smallest power of 2 that is greater or equal than k. This is the
+    side s of a complete hilbert cube. The cube contains all hilbert indices from
+    0 to s**3 - 1.
+
+    :param int k: a positive number, usually the maximum of a HilbertGrid's K member.
+    :return: int
+    """
+    if k <= 2:
+        return k
+
+    k2 = 4
+    while True:
+        if k2 >= k:
+            return k2
+        k2 *= 2
+
+
+class HilbertGrid:
     """This class imposes a grid over an Atoms' box and uses it for spatial sorting,
     using Hilbert indices, as well as for building the Verlet list.
 
@@ -80,7 +89,7 @@ class SortedGrid:
         self.cutoff = float(cutoff)
 
         # Compute the grid dimensions K from the atoms box
-        self.K = np.ceil((atoms.upper_corner - atoms.lower_corner) / cellwidth).astype(SortedGrid.I_t)
+        self.K = np.ceil((atoms.upper_corner - atoms.lower_corner) / cellwidth).astype(HilbertGrid.I_t)
 
 
     def sort(self, sort_only=False):
@@ -93,35 +102,35 @@ class SortedGrid:
         """
 
         # compute the hilbert index of every atom ------------------------------
-        h = np.empty(self.atoms.n, dtype=SortedGrid.H_t)
-        hb.rw2h_float64( self.atoms.r, self.cellwidth, h )
+        h = np.empty(self.atoms.n, dtype=HilbertGrid.H_t)
+        spatialsorting.rw2h_dp( self.atoms.r, self.cellwidth, h )
 
         # perform the spatial sort ---------------------------------------------
-        I = np.empty(self.atoms.n, dtype=SortedGrid.I_t)
+        I = np.empty(self.atoms.n, dtype=HilbertGrid.I_t)
 
-        hb.sort(h,I)
+        spatialsorting.sort(h,I)
         # sort the atom arrays:
         ar_sorted = np.empty_like(self.atoms.arrays[0])
         for ar in self.atoms.arrays:
             d = len(ar.shape)
             if d == 1:
                 if ar.dtype == np.double:
-                    reorder = hb.reorder_float64
+                    reorder = spatialsorting.reorder_dp
                 elif ar.dtype == np.single:
-                    reorder = hb.reorder_float32
-                elif ar.dtype == SortedGrid.H_t:
-                    reorder = hb.reorder_uint32
-                elif ar.dtype == SortedGrid.I_t:
-                    reorder = hb.reorder_int32
+                    reorder = spatialsorting.reorder_sp
+                elif ar.dtype == HilbertGrid.H_t:
+                    reorder = spatialsorting.reorder_uint32
+                elif ar.dtype == HilbertGrid.I_t:
+                    reorder = spatialsorting.reorder_int32
                 elif ar.dtype == int:
-                    reorder = hb.reorder_longlongint
+                    reorder = spatialsorting.reorder_longlongint
                 else:
-                    raise NotImplementedError(f'hb.reorder() not implemented for {d}-dimension array of type {ar.dtype}.')
+                    raise NotImplementedError(f'spatialsorting.reorder() not implemented for {d}-dimension array of type {ar.dtype}.')
             elif d == 2:
                 if ar.dtype == np.double:
-                    reorder = hb.reorder2_float64
+                    reorder = spatialsorting.reorder_2d_dp
                 else:
-                    raise NotImplementedError(f'hb.reorder() not implemented for {d}-dimension array of type {ar.dtype}.')
+                    raise NotImplementedError(f'spatialsorting.reorder() not implemented for {d}-dimension array of type {ar.dtype}.')
             # reuse the sorted array if we can
             if ar.dtype != ar_sorted.dtype or ar.shape != ar_sorted.shape:
                 ar_sorted = np.empty_like(ar)
@@ -141,17 +150,19 @@ class SortedGrid:
 
         if self.impl == 'cpp':
             ncells = np.max(h) + 1
-            hl_offset = np.empty(ncells, dtype=SortedGrid.I_t)
-            hl_natoms = np.empty(ncells, dtype=SortedGrid.I_t)
-            hb.build_hl(h, hl_offset, hl_natoms)
+
+            hl_offset = np.empty(ncells, dtype=HilbertGrid.I_t)
+            hl_natoms = np.empty(ncells, dtype=HilbertGrid.I_t)
+            spatialsorting.build_hl(h, hl_offset, hl_natoms)
         else:
             hl_offset, hl_natoms = build_hl(h)
 
         # build the verlet list ------------------------------------------------
         if self.impl == 'cpp':
-            import et_md.vlist
-            vl = et_md.vlist.VList(self.atoms.n, self.cutoff)
-            hb.build_vl(self.K, h, hl_offset, hl_natoms, self.atoms.r, vl )
+            VerletList = et_md3.verletlist.implementation('cpp')
+            vl = VerletList(self.cutoff)
+            vl.allocate_2d(self.atoms.n)
+            spatialsorting.build_vl(self.K, h, hl_offset, hl_natoms, self.atoms.r, vl )
         else:
             vl = self.build_vl(h, hl_offset, hl_natoms)
 
@@ -187,7 +198,7 @@ class SortedGrid:
 
         """
         ncells = hl_offset.shape[0]
-        ijk_central = np.empty(3, dtype=SortedGrid.ijk_t)
+        ijk_central = np.empty(3, dtype=HilbertGrid.ijk_t)
         ijk_delta = np.array(
             [ [ 1, 0, 0] # x-direction
             , [-1, 1, 0] # y-direction
@@ -203,19 +214,20 @@ class SortedGrid:
             , [ 0, 1, 1]
             , [ 1, 1, 1]
             ]
-            , dtype=SortedGrid.ijk_t
+            , dtype=HilbertGrid.ijk_t
         )
         ijk_nb = np.empty_like(ijk_delta)
 
         cutoff2 = self.cutoff**2
 
         if self.impl == 'py':
-            from et_md.verletlist import VerletList
-            vl = VerletList(cutoff=self.cutoff)
+            VerletList = et_md3.verletlist.implementation('py')
+            vl = VerletList(self.cutoff)
             vl.allocate_2d(self.atoms.n)
         elif self.impl in ('vl_cpp','cpp'):
-            import et_md.vlist
-            vl = et_md.vlist.VList(self.atoms.n, self.cutoff)
+            VerletList = et_md3.verletlist.implementation('cpp')
+            vl = VerletList(self.cutoff)
+            vl.allocate_2d(self.atoms.n)
         else:
             raise NotImplementedError(f'impl_vl={self.impl}')
 
@@ -232,7 +244,7 @@ class SortedGrid:
                 h_prev = h_central
 
             # compute the central cell's indices
-            hb.h2ijk(h_central, ijk_central)
+            spatialsorting.h2ijk(h_central, ijk_central)
             #print(f'h:{h_central} ijk_central{ijk_central}')
 
             # compute the indices of the neighbouring cells
@@ -259,7 +271,7 @@ class SortedGrid:
                 and -1 < ijk_nb[nb,2] < self.K[2]:
                     print(f'nb={nb} {ijk_nb[nb,:]}, {self.K}')
                     # Otherwise the cell is outside the box
-                    h_nb = hb.ijk2h_1(ijk_nb[nb,:])
+                    h_nb = spatialsorting.ijk2h_1(ijk_nb[nb,:])
                     #print(f'h_nb:{h_nb} ijk_nb{ijk_nb[nb,:]}')
                     offset_nb = hl_offset[h_nb]
                     natoms_nb = hl_natoms[h_nb]
@@ -280,8 +292,8 @@ def build_hl(h):
     """Build hilbert list"""
     natoms = h.shape[0]
     ncells = np.max(h)+1
-    hl_offset = np.empty(ncells,dtype=SortedGrid.I_t)
-    hl_natoms = np.empty(ncells,dtype=SortedGrid.I_t)
+    hl_offset = np.empty(ncells,dtype=HilbertGrid.I_t)
+    hl_natoms = np.empty(ncells,dtype=HilbertGrid.I_t)
     ia0, ia = 0, 0
     hl_offset[ia] = 0
     for hi in range(ncells):

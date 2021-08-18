@@ -38,6 +38,7 @@ def test_build():
     atoms.upper_corner = 2*np.ones(3, dtype=float)
     atoms.r[0,:] = a
     grid = Grid(cell_size=1.0, atoms=atoms)
+    grid.clear()
     for d in range(3):
         assert grid.cl.shape[d] == 2 # number of cells in d-direction
 
@@ -70,6 +71,7 @@ def test_build():
 if __name__ == "__main__":
     the_test_you_want_to_debug = test_build
 
+    print("__main__ running", the_test_you_want_to_debug)
     the_test_you_want_to_debug()
     print("-*# finished #*-")
 # ==============================================================================

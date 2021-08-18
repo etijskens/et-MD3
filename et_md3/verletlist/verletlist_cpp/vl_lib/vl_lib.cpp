@@ -44,7 +44,7 @@ VL::add(std::size_t i, std::size_t j)
     // If we are not validating, and the indices are out of range, you get
     // MemoryError: std::bad_alloc
   #endif
-
+//    std::cout<<"vl.add("<<i<<","<<j<<") "<<std::endl;
     if( this->linearised_ )
         throw std::runtime_error("Cannot add to linearised Verlet list.");
     vl2d_[i].push_back(j);
