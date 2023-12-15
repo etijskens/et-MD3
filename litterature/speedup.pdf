@@ -1,0 +1,6513 @@
+%PDF-1.3
+%‚„œ”
+2 0 obj
+<<
+/Length 13467
+>>
+stream
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 12.2294 632.3874 Tm
+0 0 0 rg
+/GS1 gs
+0 Tc
+0 Tw
+(-1-)Tj
+/TT4 1 Tf
+0 -13.4587 13.4587 0 539.3636 797.6309 Tm
+0.0166 Tc
+0.1655 Tw
+(Large Scale Molecular Dynamics Simulations using the)Tj
+4.9444 -1 TD
+0.0197 Tc
+0.1974 Tw
+(Domain Decomposition Approach)Tj
+0 -10.4679 10.4679 0 504.969 698.9334 Tm
+0.0745 Tc
+0 Tw
+(________________________)Tj
+-1.6429 -2.1429 TD
+0.0255 Tc
+0.2553 Tw
+(David Brown)Tj
+/TT2 1 Tf
+0 -8.9725 8.9725 0 484.7809 650.9041 Tm
+0 Tc
+0 Tw
+(*)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 482.5378 645.9954 Tm
+0.0181 Tc
+0.1808 Tw
+[( and Bernard Maigret)]TJ
+/TT2 1 Tf
+0 -8.9725 8.9725 0 464.5928 765.4794 Tm
+-0.005 Tc
+0 Tw
+(Laboratoire de Chimie ThÈorique - UMR CNRS 7565, UniversitÈ de Nancy I,)Tj
+4.75 -1 TD
+-0.0022 Tc
+(BP 239, 54506 Vandoeuvre-lËs-Nancy Cedex, France)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 435.4322 698.9334 Tm
+0.0745 Tc
+(________________________)Tj
+/TT2 1 Tf
+0 -8.9725 8.9725 0 408.5147 774.4519 Tm
+-0.0095 Tc
+(This paper reviews the computational aspects of a method for applying domain)Tj
+T*
+-0.0091 Tc
+(decomposition to a general purpose molecular dynamics program. The algorithm is)Tj
+T*
+-0.0105 Tc
+(suitable for either distributed memory parallel computers or shared memory)Tj
+T*
+-0.0078 Tc
+(machines with message passing libraries. The method allows molecules of arbitrary)Tj
+T*
+-0.0105 Tc
+(connectivity to be simulated within the domain decomposition approach. The)Tj
+T*
+-0.0095 Tc
+(algorithm contains techniques to handle both rigid bond constraints and special)Tj
+T*
+-0.0096 Tc
+(CH)Tj
+0 -7.4771 7.4771 0 353.1843 762.1597 Tm
+0 Tc
+(2)Tj
+0 -8.9725 8.9725 0 354.6797 758.4727 Tm
+-0.0055 Tc
+( constraints, as well as two, three- and four-body intramolecular potentials and)Tj
+-1.7809 -1 TD
+-0.0075 Tc
+(van der Waals and Coulombic interactions. Benchmark results of such a program)Tj
+T*
+0 Tc
+(\()Tj
+/TT6 1 Tf
+0.333 0 TD
+-0.0062 Tc
+(ddgmq)Tj
+/TT2 1 Tf
+2.6913 0 TD
+-0.0042 Tc
+(\) are illustrated.)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 314.3035 805.8557 Tm
+0.0441 Tc
+[(1)-134.5(.)-1598.8(Introduction)]TJ
+/TT2 1 Tf
+0 -8.9725 8.9725 0 300.8447 805.8557 Tm
+-0.0118 Tc
+(At the molecular level the detailed structure and dynamics of many systems are very difficult to)Tj
+0 -1 TD
+-0.0052 Tc
+(discern by spectroscopic methods \(x-ray, NMR, etc.\). As a complement to such conventional)Tj
+T*
+-0.0092 Tc
+(approaches, interest has turned in recent years to atomistic computer simulation, usually molecular)Tj
+T*
+-0.0076 Tc
+(dynamics \(MD\), methods [1]. In many cases these simulations have provided detailed insight into)Tj
+T*
+-0.0089 Tc
+(phenomena. However, the time and length scales accessible to simulation are restricted by the)Tj
+T*
+-0.0099 Tc
+(computing power available and for atomistic simulations this is currently in the nanoscale regime.)Tj
+T*
+-0.0095 Tc
+(Thus, many technologically and biochemically interesting systems which extend over distances larger)Tj
+T*
+-0.0106 Tc
+(than 10 nm and/or relax on time scales longer than nanoseconds are difficult to simulate adequately)Tj
+T*
+-0.0056 Tc
+(using standard MD codes running on single processor computers. It is essential to develop new)Tj
+T*
+-0.0107 Tc
+(parallel algorithms capable of handling complex biochemical and technological systems. Solving this)Tj
+T*
+-0.0072 Tc
+(problem opens up the prospect of simulating systems of a much larger scale than was ever previously)Tj
+T*
+-0.006 Tc
+(possible and thus the opportunity of advancing our understanding of many processes at a)Tj
+T*
+-0.0113 Tc
+0.0001 Tw
+(fundamental level.)Tj
+0 -2 TD
+-0.0135 Tc
+0 Tw
+(Early attempts at parallelizing MD simulations were largely limited to atomic systems and to highly)Tj
+0 -1 TD
+0.0006 Tc
+0.0062 Tw
+(specific problems, )Tj
+/TT6 1 Tf
+7.6045 0 TD
+0.0012 Tc
+0 Tw
+(e.g.)Tj
+/TT2 1 Tf
+1.4485 0 TD
+0.0005 Tc
+0.0043 Tw
+( [12, 19, 28, 29, 41]. During this time, a number of strategies were proposed)Tj
+-9.053 -1 TD
+-0.014 Tc
+0 Tw
+(for mapping MD onto multiple-instruction multiple-data \(MIMD\) machines based on either particle)Tj
+T*
+-0.0039 Tc
+(decomposition, )Tj
+/TT6 1 Tf
+6.3294 0 TD
+-0.0028 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.2107 0 TD
+-0.0037 Tc
+( assigning particles to home processors using their indices, or domain)Tj
+-7.5401 -1 TD
+-0.0023 Tc
+(decomposition, )Tj
+/TT6 1 Tf
+6.3544 0 TD
+-0.0016 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.2153 0 TD
+-0.0021 Tc
+( assigning particles to processors according to their position in space [19, 33, 34,)Tj
+-7.5698 -1 TD
+-0.0058 Tc
+0.0001 Tw
+(40, 41, 46, 47]. Although there have been more recent developments involving force decomposition)Tj
+T*
+-0.0088 Tc
+0 Tw
+([36, 37] and attempts to combine strategies [11], the problem has remained that the best parallel)Tj
+T*
+-0.0098 Tc
+0.0001 Tw
+(solution for a particular simulation depends on factors like the average number of particles per)Tj
+T*
+-0.0042 Tc
+0 Tw
+(processor and the speed of the individual processors. However, for large scale simulations where)Tj
+T*
+-0.01 Tc
+(there are many more particles than processors, there is little doubt that domain decomposition \(DD\) is)Tj
+T*
+-0.0082 Tc
+(the optimum approach.)Tj
+ET
+1 i 
+68.128 805.856 0.179 -107.102 re
+f
+BT
+0 -8.9725 8.9725 0 52.6056 805.8557 Tm
+-0.0074 Tc
+[(*)-1840.7(SnailMail: LMPC, B‚t IUT - Savoie Technolac, 73376 Le Bourget-du-Lac Cedex, France)]TJ
+2.3333 -1.5 TD
+-0.0052 Tc
+(Email: David.Brown@univ-savoie.fr)Tj
+0 g
+62.9478 -3 TD
+0 Tc
+(-2-)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 549.8315 393.5887 Tm
+0.0299 Tc
+0.2992 Tw
+[(2)-148.7(.)-1613(Molecular dynamics)]TJ
+/TT2 1 Tf
+0 -8.9725 8.9725 0 536.3728 393.5887 Tm
+-0.0102 Tc
+0 Tw
+(As an introduction to some of the difficulties involved in applying domain decomposition to a)Tj
+0 -1 TD
+-0.0118 Tc
+(molecular system of arbitrary connectivity some of the common practices carried out in molecular)Tj
+T*
+-0.0075 Tc
+(dynamics computer simulation [1, 20, 21] are first reviewed. To keep matters relatively simple only)Tj
+T*
+-0.0105 Tc
+(classical systems will be considered; the parallelization of methods which introduce quantum)Tj
+T*
+-0.0082 Tc
+(mechanics into the dynamics is not considered here.)Tj
+0 -2 TD
+-0.0094 Tc
+(In a classical MD simulation a molecule is modelled as a number of point masses, atoms, connected)Tj
+0 -1 TD
+-0.0089 Tc
+(by a network of interconnecting bonds. Molecules interact with one another via the sum of all)Tj
+T*
+-0.0098 Tc
+(possible pair interactions between their constituent atoms. The approximation that atoms on different)Tj
+T*
+-0.0127 Tc
+(molecules experience a force between them )Tj
+/TT6 1 Tf
+17.1809 0 TD
+(independent )Tj
+/TT2 1 Tf
+4.9832 0 TD
+-0.0115 Tc
+(of all the other atoms present is a relatively)Tj
+-22.1641 -1 TD
+-0.0083 Tc
+(crude one but is almost universally made in classical MD; incorporating 3-body, 4-body etc. effects)Tj
+T*
+-0.0096 Tc
+(leads quickly to prohibitive computing costs. It is generally argued that the pair potential is an)Tj
+/TT6 1 Tf
+T*
+-0.0104 Tc
+(effective)Tj
+/TT2 1 Tf
+3.2368 0 TD
+-0.0108 Tc
+( potential, rather than a true representation of the actual pair interaction between isolated)Tj
+-3.2368 -1 TD
+-0.0077 Tc
+(atoms, and as such takes into account the higher order terms through the parametrization.)Tj
+0 -2 TD
+-0.0089 Tc
+(The main purpose of these so-called non-bonded effective pair potentials is to prevent two atoms)Tj
+0 -1 TD
+-0.0097 Tc
+(from occupying the same region of space \(short range repulsive interaction\). Attractive terms in the)Tj
+T*
+(potential  hold liquid/solid systems together and influence the preferred packing structure of the)Tj
+T*
+-0.0112 Tc
+(molecules to a greater or lesser extent depending on their exact nature. An example of a pair potential)Tj
+T*
+-0.009 Tc
+(widely used in MD simulations is the Lennard-Jones 12-6 potential)Tj
+/TT7 1 Tf
+13.3333 -1.9167 TD
+0 Tc
+<005c>Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 347.2026 267.3822 Tm
+-0.02 Tc
+(LJ)Tj
+0 -8.9725 8.9725 0 348.698 260.2042 Tm
+-0.0107 Tc
+(\(|)Tj
+/TT4 1 Tf
+0.5119 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.426 -0.3333 TD
+-0.0112 Tc
+(ij)Tj
+0.5333 0.3333 TD
+-0.014 Tc
+(|\) = 4)Tj
+/TT7 1 Tf
+2.0132 0 TD
+0 Tc
+<00a1>Tj
+/TT2 1 Tf
+0.4214 0 TD
+-0.0133 Tc
+(\(\()Tj
+/TT7 1 Tf
+0.6393 0 TD
+0 Tc
+<006d>Tj
+/TT2 1 Tf
+0.5789 0 TD
+-0.0096 Tc
+(/|)Tj
+/TT4 1 Tf
+0.4589 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.426 -0.3333 TD
+-0.0112 Tc
+(ij)Tj
+0.5333 0.3333 TD
+-0.0107 Tc
+(|\))Tj
+0 -7.4771 7.4771 0 353.1843 196.9117 Tm
+-0.02 Tc
+(12)Tj
+0 -8.9725 8.9725 0 348.698 189.7337 Tm
+-0.0133 Tc
+(-\()Tj
+/TT7 1 Tf
+0.6393 0 TD
+0 Tc
+<006d>Tj
+/TT2 1 Tf
+0.5789 0 TD
+-0.0096 Tc
+(/|)Tj
+/TT4 1 Tf
+0.4589 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.426 -0.3333 TD
+-0.0112 Tc
+(ij)Tj
+0.5333 0.3333 TD
+-0.0107 Tc
+(|\))Tj
+0 -7.4771 7.4771 0 353.1843 161.4857 Tm
+0 Tc
+(6)Tj
+0 -8.9725 8.9725 0 348.698 157.8968 Tm
+[(\))-12232.1(\(1\))]TJ
+-26.2683 -2.0833 TD
+-0.0068 Tc
+0.0001 Tw
+(where the pair of interacting atoms, {i,j}, have a separation vector denoted by )Tj
+/TT4 1 Tf
+30.7974 0 TD
+0 Tc
+0 Tw
+(r)Tj
+/TT2 1 Tf
+0.4363 -0.1667 TD
+-0.0048 Tc
+(ij)Tj
+0.5462 0.1667 TD
+-0.0066 Tc
+( \(=)Tj
+/TT4 1 Tf
+1.1272 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4363 -0.1667 TD
+(i)Tj
+0.2731 0.1667 TD
+(-)Tj
+/TT4 1 Tf
+0.3273 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4363 -0.1667 TD
+(j)Tj
+0.2731 0.1667 TD
+-0.0048 Tc
+(\), )Tj
+/TT7 1 Tf
+0.8188 0 TD
+0 Tc
+<00a1>Tj
+/TT2 1 Tf
+0.4315 0 TD
+-0.0068 Tc
+( is the)Tj
+-35.9033 -1.4167 TD
+-0.0091 Tc
+(well-depth of the potential and )Tj
+/TT7 1 Tf
+12.2333 0 TD
+0 Tc
+<006d>Tj
+/TT2 1 Tf
+0.589 0 TD
+-0.0088 Tc
+( is the distance at which the potential is zero. This is just one of)Tj
+-12.8223 -1.0833 TD
+-0.0079 Tc
+(many such potentials which combine a repulsive term, dominant at short range, and a quickly)Tj
+0 -1 TD
+-0.0089 Tc
+(diminishing attractive tail. In practice a truncation, r)Tj
+0 -7.4771 7.4771 0 297.1062 210.9609 Tm
+0 Tc
+(c)Tj
+0 -8.9725 8.9725 0 298.6016 207.7214 Tm
+-0.01 Tc
+(, is normally applied beyond which the force)Tj
+-20.7152 -1 TD
+-0.0089 Tc
+(between particles is defined to vanish. Although this is an approximation the restriction of the range)Tj
+T*
+-0.0091 Tc
+(within which )Tj
+/TT6 1 Tf
+5.3814 0 TD
+-0.0079 Tc
+(explicit)Tj
+/TT2 1 Tf
+2.8795 0 TD
+-0.0085 Tc
+( interacting pairs have to be found is necessary in order to render the problem)Tj
+-8.261 -1 TD
+-0.012 Tc
+(tractable.)Tj
+0 -2 TD
+-0.0094 Tc
+(With regard to the parallelization, the exact form of the short range non-bonded pair potentials is of)Tj
+0 -1 TD
+-0.0124 Tc
+(no importance; the real problem lies in calculating uniquely the distance between all possible)Tj
+T*
+-0.0072 Tc
+(interacting pairs. However, one of the continuing problems with MD simulations concerns the)Tj
+T*
+-0.0111 Tc
+(treatment of the charge-charge interactions. Formally these are described by the Coulombic potential)Tj
+/TT7 1 Tf
+14.9167 -1.8333 TD
+0 Tc
+<005c>Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 208.8766 253.1847 Tm
+(c)Tj
+0 -8.9725 8.9725 0 210.372 250.0036 Tm
+-0.011 Tc
+(\(|)Tj
+/TT4 1 Tf
+0.5112 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4255 -0.3333 TD
+-0.0115 Tc
+(ij)Tj
+0.5327 0.3333 TD
+-0.0144 Tc
+(|\) = q)Tj
+2.0107 -0.3333 TD
+0 Tc
+(i)Tj
+0.2663 0.3333 TD
+(q)Tj
+0.4793 -0.3333 TD
+(j)Tj
+0.2663 0.3333 TD
+-0.0133 Tc
+( / \(4)Tj
+/TT7 1 Tf
+1.5442 0 TD
+-0.0204 Tc
+<002f00a1>Tj
+0 -7.4771 7.4771 0 208.8766 187.3471 Tm
+0 Tc
+<006b>Tj
+/TT2 1 Tf
+0 -8.9725 8.9725 0 210.372 183.4132 Tm
+(|)Tj
+/TT4 1 Tf
+0.1919 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4255 -0.3333 TD
+-0.0115 Tc
+(ij)Tj
+0.5327 0.3333 TD
+0 Tc
+[(|)22(\))-13747.6(\(2\))]TJ
+-24.5745 -2.0833 TD
+-0.011 Tc
+(where q)Tj
+3.1159 -0.3333 TD
+0 Tc
+(i)Tj
+0.2711 0.3333 TD
+-0.0098 Tc
+( and q)Tj
+2.3848 -0.3333 TD
+0 Tc
+(j)Tj
+0.2711 0.3333 TD
+-0.0095 Tc
+( are the partial charges on the two atoms and )Tj
+/TT7 1 Tf
+17.6675 0 TD
+0 Tc
+<00a1>Tj
+0 -7.4771 7.4771 0 190.1839 177.0038 Tm
+<006b>Tj
+/TT2 1 Tf
+0 -8.9725 8.9725 0 191.6794 172.9996 Tm
+-0.0097 Tc
+( is the permittivity of the vacuum.)Tj
+-24.585 -1.25 TD
+-0.0088 Tc
+(The 1/r nature of this potential means the energy diminishes very slowly with range and in the)Tj
+0 -1 TD
+-0.0062 Tc
+(program to be described here, the Ewald lattice summation method [18, 48] has been used. This)Tj
+T*
+-0.0073 Tc
+(method effectively splits the Coulombic energy into two sums, one performed in real space,)Tj
+T*
+(involving explicit calculation of pair distances, and a second in Fourier space, which involves a sum)Tj
+T*
+-0.0092 Tc
+(over reciprocal lattice vectors. In the 3D periodic boundary conditions, used in MD to reduce)Tj
+T*
+-0.009 Tc
+(otherwise dominant boundary effect, the Ewald summation nominally fits well into a DD strategy.)Tj
+T*
+-0.0079 Tc
+(First, the real space part of the sum involves a potential which quickly diminishes with range and)Tj
+T*
+-0.0063 Tc
+(can, thus, be treated like all other short range potentials. Second, the reciprocal space summation,)Tj
+T*
+-0.0082 Tc
+(formally a sum over pairs of atoms, can be factorized into a single sum involving atomic positions)Tj
+T*
+-0.0077 Tc
+(only, within a sum over reciprocal lattice vectors, )Tj
+/TT4 1 Tf
+19.6458 0 TD
+0 Tc
+(k)Tj
+/TT2 1 Tf
+0.5449 0 TD
+-0.0078 Tc
+(. The parallelization of this second part is then)Tj
+-20.1907 -1 TD
+-0.0088 Tc
+(trivial in DD with each processor performing the sum over k-vectors for each atom in its domain. The)Tj
+T*
+-0.0064 Tc
+(Ewald method does not scale linearly, however, and more about this will be said later.)Tj
+0 -2 TD
+-0.0112 Tc
+(Atoms within the same molecule may also interact through pair potentials in the same way as)Tj
+0 -1 TD
+-0.0059 Tc
+(described above. This depends if the interactions are deemed to be ënon-bondedí or ëbondedí.)Tj
+T*
+-0.0109 Tc
+(Normally a certain number of ëbondedí interactions maintain the local geometry within molecules.)Tj
+ET
+endstream
+endobj
+3 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT6 6 0 R
+/TT7 7 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+11 0 obj
+<<
+/Length 16122
+>>
+stream
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 12.2294 632.3875 Tm
+0 g
+/GS1 gs
+0 Tc
+0 Tw
+(-3-)Tj
+-19.3333 60.1667 TD
+-0.0112 Tc
+(Atom pairs forming a chemical bond can be kept close to a certain distance apart by a continuous)Tj
+0 -1 TD
+-0.007 Tc
+(potential. Similarly other potentials can be used to force preferred structure upon, for example, bond)Tj
+T*
+-0.0076 Tc
+(angles, torsion angles and the out of plane motion of trivalent atoms. The exact form of these)Tj
+T*
+-0.0094 Tc
+(potentials is again not particularly important. However, for the parallelization by decomposition in)Tj
+T*
+-0.0097 Tc
+(domains the most important point is that a certain number of atom positions are required in order to)Tj
+0 -1.3333 TD
+-0.0054 Tc
+(calculate the potential and the forces. For example, a bond angle, )Tj
+/TT7 1 Tf
+25.9047 0 TD
+0 Tc
+<0065>Tj
+/TT2 1 Tf
+0.5138 0 TD
+-0.0053 Tc
+(, is defined by the positions of)Tj
+-26.4185 -1.0833 TD
+-0.0027 Tc
+(three contiguous atoms {i, j, k}  \(i bonded to j and j bonded to k and i)Tj
+/TT7 1 Tf
+27.6249 0 TD
+0 Tc
+<0026>Tj
+/TT2 1 Tf
+0.5462 0 TD
+-0.0027 Tc
+(k\),)Tj
+-13.0044 -1.9167 TD
+-0.0147 Tc
+(cos )Tj
+/TT7 1 Tf
+1.5243 0 TD
+0 Tc
+<0065>Tj
+/TT2 1 Tf
+0.5017 0 TD
+-0.013 Tc
+( = \()Tj
+/TT4 1 Tf
+1.345 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4273 -0.1667 TD
+-0.01 Tc
+(ij )Tj
+0.7757 0.1667 TD
+0 Tc
+(ï)Tj
+/TT4 1 Tf
+0.3371 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4274 -0.1667 TD
+-0.0144 Tc
+(kj)Tj
+0.749 0.1667 TD
+-0.01 Tc
+(\)/|)Tj
+/TT4 1 Tf
+0.781 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4274 -0.1667 TD
+-0.0103 Tc
+(ij)Tj
+0.535 0.1667 TD
+-0.0074 Tc
+(||)Tj
+/TT4 1 Tf
+0.3856 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4274 -0.1667 TD
+-0.0144 Tc
+(kj)Tj
+0.749 0.1667 TD
+0 Tc
+[(|)-14073.8(\(3\))]TJ
+-24.5594 -1.9167 TD
+-0.0032 Tc
+(Similarly, four contiguous atoms {i, j, k, l} are required to define the torsion \(or dihedral\) angle, )Tj
+/TT7 1 Tf
+38.405 0 TD
+0 Tc
+<006f>Tj
+/TT2 1 Tf
+0.439 0 TD
+(,)Tj
+-38.844 -1.0833 TD
+0.0003 Tc
+0.0031 Tw
+(between the planes of the two groups {i, j, k} and {j, k, l})Tj
+13.9167 -2.5 TD
+0.0029 Tc
+0 Tw
+(cos )Tj
+/TT7 1 Tf
+1.6239 0 TD
+0 Tc
+<006f>Tj
+/TT2 1 Tf
+0.4503 0 TD
+0.0013 Tc
+0.0134 Tw
+[( = ñ )]TJ
+1.8609 0.6667 TD
+0 Tc
+0 Tw
+(\()Tj
+/TT4 1 Tf
+0.3416 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4554 -0.1667 TD
+0.0069 Tc
+(ij )Tj
+/TT8 1 Tf
+0.8264 0.1667 TD
+0 Tc
+(◊)Tj
+/TT4 1 Tf
+0.563 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4554 -0.1667 TD
+0.0101 Tc
+(jk)Tj
+0.798 0.1667 TD
+0.0088 Tc
+(\)ï\()Tj
+/TT4 1 Tf
+1.0424 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4553 -0.1667 TD
+0.0088 Tc
+(jk )Tj
+/TT8 1 Tf
+1.0543 0.1667 TD
+0 Tc
+(◊)Tj
+/TT4 1 Tf
+0.563 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4554 -0.1667 TD
+0.0101 Tc
+(kl)Tj
+0.798 0.1667 TD
+0 Tc
+(\))Tj
+-7.6599 -1.5 TD
+(|)Tj
+/TT4 1 Tf
+0.2122 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4704 -0.1667 TD
+0.0161 Tc
+(ij )Tj
+/TT8 1 Tf
+0.8539 0.1667 TD
+0 Tc
+(◊)Tj
+/TT4 1 Tf
+0.5817 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4704 -0.1667 TD
+0.0233 Tc
+(jk)Tj
+0.8245 0.1667 TD
+0.013 Tc
+(| |)Tj
+/TT4 1 Tf
+0.6894 0 TD
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0.4704 -0.1667 TD
+0.0205 Tc
+(jk )Tj
+/TT8 1 Tf
+1.0893 0.1667 TD
+0 Tc
+(◊)Tj
+/TT4 1 Tf
+0.5817 0 TD
+(r)Tj
+/TT2 1 Tf
+0.4704 -0.1667 TD
+0.0233 Tc
+(kl)Tj
+0.8245 0.1667 TD
+0 Tc
+(|)Tj
+ET
+1 i 
+430.766 646.594 0.179 -74.203 re
+f
+BT
+0 -8.9725 8.9725 0 427.9551 457.4237 Tm
+(\(4\))Tj
+-38.8333 -2.4167 TD
+-0.0071 Tc
+(It is inevitable that a decomposition in domains will result in atoms which define bonds, bond angles,)Tj
+0 -1 TD
+-0.0086 Tc
+(torsions etc. being placed on different processors. The parallelization of the calculation of these)Tj
+T*
+-0.0064 Tc
+(ëbondedí interactions requires, thus, the unique identification of the group of atoms, hereinafter)Tj
+T*
+-0.0066 Tc
+(referred to as n-plets, in question by just one processor. An added minor complication is that atoms)Tj
+T*
+-0.0094 Tc
+(involved in these intramolecular n-plets are often considered as not being subject to the non-bonded)Tj
+T*
+-0.0131 Tc
+(potentials; their effect having being incorporated in the intramolecular potential. The parallel algorithm)Tj
+T*
+-0.0054 Tc
+(has then to be able to distinguish between these ëbondedí and ënon-bondedí pairs.)Tj
+0 -2 TD
+-0.0085 Tc
+(Given a set of initial coordinates and velocities for the atoms, the boundary conditions and a)Tj
+0 -1 TD
+-0.0104 Tc
+(description of the interactions between particles, MD progresses by calculating the total force on each)Tj
+0 -1.3333 TD
+-0.0075 Tc
+(atom and then integrating the equations of motion forward by a short time interval, )Tj
+/TT7 1 Tf
+32.7782 0 TD
+0 Tc
+<0036>Tj
+/TT2 1 Tf
+0.6003 0 TD
+-0.0071 Tc
+(t, using finite)Tj
+-33.3785 -1.0833 TD
+-0.008 Tc
+(difference methods. Done repeatedly, this process builds up a trajectory for each atom in the system)Tj
+0 -1 TD
+-0.0094 Tc
+(from which various thermodynamic and dynamic properties can be calculated. The equations of)Tj
+T*
+-0.0057 Tc
+(motion can be of the Newtonian form or be more complicated in a number of ways, e.g. in order to)Tj
+T*
+-0.0096 Tc
+(force the system to have a certain average temperature and pressure [1]. The integration step in the)Tj
+T*
+-0.0073 Tc
+(above cases does not pose any problems for domain decomposition as each particleís position is)Tj
+T*
+-0.0081 Tc
+(propagated forward independently once the forces are known. The actual algorithm used to do the)Tj
+T*
+-0.0127 Tc
+(time integration is not directly important with respect to the parallelization.)Tj
+0 -2 TD
+-0.0093 Tc
+(The use of continuous potentials to impose a certain geometry on molecules does pose some indirect)Tj
+0 -1 TD
+-0.0072 Tc
+(problems. Realistic force constants for bond stretching modes are very high and lead to high)Tj
+T*
+-0.0106 Tc
+(frequency motions. These restrict the maximum time step that can be used to integrate the equations)Tj
+T*
+-0.0066 Tc
+(of motion. Although multiple time steps algorithms [49, 51, 52] are one solution to this problem they)Tj
+T*
+-0.0061 Tc
+(don't in themselves solve a more serious problem which concerns the poor coupling between the)Tj
+T*
+-0.0087 Tc
+(high-frequency low-amplitude modes and the rest of the modes in the system. In completely classical)Tj
+T*
+-0.011 Tc
+(MD simulation this presents a real problem as it can lead to non-equipartition of energy and hence)Tj
+T*
+-0.0069 Tc
+(results which have nothing to do with the sampling conditions required. A standard solution to these)Tj
+T*
+-0.0037 Tc
+-0.0001 Tw
+(problems is to use rigid constraints.)Tj
+0 -2 TD
+-0.0058 Tc
+0.0001 Tw
+(The simplest form of constraint is that of a rigid bond between atoms. However, other more)Tj
+0 -1 TD
+-0.0093 Tc
+0 Tw
+(complicated forms [22, 43] can involve more than two atoms. A particular example is the special)Tj
+T*
+-0.0068 Tc
+0.0001 Tw
+(constraints required to freeze all the degrees of freedom of hydrogen molecules in a CH)Tj
+0 -7.4771 7.4771 0 122.8902 496.2111 Tm
+0 Tc
+0 Tw
+(2)Tj
+0 -8.9725 8.9725 0 124.3856 492.5354 Tm
+-0.0073 Tc
+0.0001 Tw
+( group [22].)Tj
+-34.9201 -1 TD
+-0.0056 Tc
+0 Tw
+(For a X-CH)Tj
+0 -7.4771 7.4771 0 113.9177 763.4919 Tm
+0 Tc
+(2)Tj
+0 -8.9725 8.9725 0 115.4131 759.7968 Tm
+-0.0048 Tc
+(-Y group, holding the mid-point of the H-H vector on the bisector of the X-C-Y)Tj
+-5.1333 -1 TD
+-0.0104 Tc
+(bending angle and maintaining the H-H vector perpendicular to the vector joining the X and Y atoms)Tj
+T*
+-0.0062 Tc
+(removes all the degrees of freedom of the hydrogens. Such a constraint involves the positions of five)Tj
+T*
+-0.0098 Tc
+(atoms. Although there are different methods available to incorporate a solution of the constraints)Tj
+T*
+-0.0076 Tc
+(problem into the equations of motion, we will restrict the discussion in this paper to probably the)Tj
+T*
+-0.0068 Tc
+(most common one based on the iterative procedure ëS)Tj
+0 -7.4771 7.4771 0 70.5506 615.6315 Tm
+-0.0112 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 70.5506 595.2 Tm
+-0.0059 Tc
+(í [44]. S)Tj
+0 -7.4771 7.4771 0 70.5506 566.0221 Tm
+-0.0112 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 70.5506 545.5907 Tm
+-0.0064 Tc
+( solves the constraints)Tj
+-29.007 -1 TD
+-0.0079 Tc
+(problem by first allowing particle positions to be propagated forward in the absence of the forces of)Tj
+T*
+-0.0091 Tc
+(constraint to provisional positions at the next time step. Final positions are then obtained at the next)Tj
+T*
+-0.0093 Tc
+(step by applying all the constraints in turn and iterating this process until all constraints are satisfied)Tj
+65.2812 -3.5 TD
+0 Tc
+(-4-)Tj
+-19.3333 60.1667 TD
+-0.0075 Tc
+(to within some specified tolerance. In scalar codes the most recent positions are always used in order)Tj
+0 -1 TD
+-0.0085 Tc
+(to speed up convergence; an atom may be involved in several constraints. This recursive operation)Tj
+T*
+-0.0098 Tc
+0.0001 Tw
+(impedes vectorization so either coordinates at the previous iteration are used, and increased)Tj
+T*
+-0.0091 Tc
+0 Tw
+(vectorization traded against an increased number of iterations, or methods to avoid recursion are)Tj
+T*
+-0.002 Tc
+(utilised [32].)Tj
+0 -2 TD
+-0.0098 Tc
+0.0001 Tw
+(Incorporating constraints into the dynamics ameliorates the problem of short time steps and largely)Tj
+0 -1 TD
+-0.0064 Tc
+0 Tw
+(solves the poor coupling problem and, despite the extra complexity and CPU costs of solving the)Tj
+T*
+-0.0069 Tc
+(constraints problem, leads to net savings in scalar or vector codes. With respect to domain)Tj
+T*
+-0.0083 Tc
+(decomposition, S)Tj
+0 -7.4771 7.4771 0 471.3221 332.4771 Tm
+-0.0133 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 471.3221 312.1084 Tm
+-0.0075 Tc
+( introduces an extra problem in that, at the integration step, the propagation of)Tj
+-9.0811 -1 TD
+-0.0092 Tc
+(a particleís position forward in time is no longer a process independent of all other particles in the)Tj
+T*
+-0.0068 Tc
+0.0001 Tw
+(system. Inevitably atoms involved in constraints will straddle domain boundaries, thus implying)Tj
+T*
+-0.0107 Tc
+0 Tw
+(communication at each iteration of the S)Tj
+0 -7.4771 7.4771 0 444.4047 251.9417 Tm
+-0.0184 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 444.4047 231.7256 Tm
+-0.0119 Tc
+( procedure.)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 421.9734 393.5887 Tm
+0.0292 Tc
+0.2925 Tw
+[(3)-149.4(.)-1613.7(Parallel Molecular Dynamics)]TJ
+0 -8.9725 8.9725 0 404.0284 380.13 Tm
+0.0432 Tc
+0 Tw
+[(3)-123.5(.)-123.5(1)-2873.5(Background)]TJ
+/TT2 1 Tf
+-1.5 -1 TD
+-0.0087 Tc
+(In the DD strategy, each processor element \(PE\) is responsible for particles residing in a particular)Tj
+T*
+-0.0101 Tc
+(sub-volume of the MD box and each processor accumulates the total forces on the particles in its)Tj
+T*
+-0.0102 Tc
+(domain and integrates their equations of motion. Although DD is relatively straightforward to)Tj
+T*
+-0.0091 Tc
+(implement for atomic systems in which only pair interactions exist \(and there are now numerous)Tj
+T*
+0.0005 Tc
+0.0048 Tw
+(examples [2, 8, 23, 27, 29, 34, 35, 42, 50]\), the connectivity of molecular systems introduces a)Tj
+T*
+-0.0049 Tc
+0 Tw
+(number of new difficulties [7, 17]. These can be summarized as follows:-)Tj
+0 -1.25 TD
+-0.0116 Tc
+[(\()-11.6(1)-11.6(\))-678.9(Multiparticle potentials and specialized constraints require that the group of n atoms involved in)]TJ
+1.8333 -1 TD
+-0.0077 Tc
+(the calculation be simultaneously known by one PE which is assigned to carry out the necessary)Tj
+T*
+-0.0046 Tc
+(computations.)Tj
+-1.8333 -1.5 TD
+-0.0076 Tc
+[(\()-7.6(2)-7.6(\))-674.9(Particles subject to rigid constraints may lie in different domains. The procedure S)]TJ
+0 -7.4771 7.4771 0 307.5741 87.0909 Tm
+-0.0135 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 307.5741 66.7282 Tm
+0 Tc
+(,)Tj
+-34.5958 -1 TD
+-0.0088 Tc
+(generally used to impose rigid constraints, implies a communication between processors at each)Tj
+T*
+-0.0064 Tc
+(of several iterations.)Tj
+-1.8333 -1.5 TD
+-0.0083 Tc
+[(\()-8.3(3)-8.3(\))-675.6(Not all pairs of atoms interact via non-bonded pair potentials.)]TJ
+0 -1.25 TD
+-0.0106 Tc
+(As a result of the above, most attempts to parallelize general purpose MD codes have relied on)Tj
+0 -1 TD
+-0.0033 Tc
+0.0001 Tw
+(simpler to implement particle decomposition techniques [4, 15, 25, 26, 30, 31, 45] which are)Tj
+T*
+-0.0075 Tc
+0 Tw
+(unsuitable for large-scale simulations as each processor requires a knowledge of all atomic positions.)Tj
+T*
+-0.0062 Tc
+(Some improvement is possible using force decomposition techniques [37] but, as yet, there are only)Tj
+T*
+-0.0067 Tc
+(a few examples in the literature of DD MD programs being used for molecular systems [7, 13, 14,)Tj
+T*
+0.0098 Tc
+0.0984 Tw
+(17, 38].)Tj
+0 -2 TD
+-0.0095 Tc
+0 Tw
+(In the following section, some general remarks are made about our implementation of domain)Tj
+0 -1 TD
+-0.0072 Tc
+(decomposition. We then discuss the extension to molecular systems of arbitrary connectivity. Further)Tj
+T*
+-0.0088 Tc
+0.0001 Tw
+(details can be found in a recent article [10] and in the on-line manual for the )Tj
+/TT6 1 Tf
+30.01 0 TD
+-0.0131 Tc
+0 Tw
+(gmq)Tj
+/TT2 1 Tf
+1.6829 0 TD
+-0.0088 Tc
+( and )Tj
+/TT6 1 Tf
+1.8997 0 TD
+-0.0155 Tc
+(ddgmq)Tj
+/TT2 1 Tf
+-33.5926 -1 TD
+0.0027 Tc
+0.0265 Tw
+(programs [6].)Tj
+/TT4 1 Tf
+1.5 -2.5 TD
+0.0314 Tc
+0.3144 Tw
+[(3)-135.3(.)-135.3(2)-2885.3(General considerations)]TJ
+/TT2 1 Tf
+-1.5 -1.3333 TD
+-0.0033 Tc
+0 Tw
+(In the DD scheme used, the atoms are initially assigned to the N)Tj
+0 -7.4771 7.4771 0 139.3398 165.0175 Tm
+0 Tc
+(p)Tj
+0 -6.7294 6.7294 0 137.8444 161.2789 Tm
+(x)Tj
+/TT8 1 Tf
+0 -8.9725 8.9725 0 140.8352 157.9142 Tm
+(◊)Tj
+/TT2 1 Tf
+0.5442 0 TD
+(N)Tj
+0 -7.4771 7.4771 0 139.3398 146.6052 Tm
+(p)Tj
+0 -6.7294 6.7294 0 137.8444 142.8667 Tm
+(y)Tj
+/TT8 1 Tf
+0 -8.9725 8.9725 0 140.8352 139.502 Tm
+(◊)Tj
+/TT2 1 Tf
+0.5442 0 TD
+(N)Tj
+0 -7.4771 7.4771 0 139.3398 128.1929 Tm
+(p)Tj
+0 -6.7294 6.7294 0 137.8444 124.4544 Tm
+(z)Tj
+0 -8.9725 8.9725 0 140.8352 121.4676 Tm
+-0.0053 Tc
+(=N)Tj
+0 -7.4771 7.4771 0 139.3398 110.0234 Tm
+-0.0031 Tc
+(p )Tj
+0 -8.9725 8.9725 0 140.8352 104.462 Tm
+-0.0036 Tc
+(processors on the)Tj
+-32.2237 -1.1667 TD
+-0.0043 Tc
+(basis of the x, y and z coordinates, )Tj
+/TT6 1 Tf
+13.8914 0 TD
+-0.0035 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.2077 0 TD
+-0.0049 Tc
+( 3-D decomposition of space. The exact shape of the MD box)Tj
+-15.0991 -1 TD
+-0.0088 Tc
+(does not have to be orthorhombic and assignments are actually carried out using the set of scaled)Tj
+0 -1.4167 TD
+0.0042 Tc
+(coordinates )Tj
+/TT4 1 Tf
+4.9511 0 TD
+0 Tc
+(s)Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 107.1883 345.6072 Tm
+(i)Tj
+0 -6.7294 6.7294 0 108.6837 343.491 Tm
+( )Tj
+0 -8.9725 8.9725 0 108.6837 341.8087 Tm
+(=)Tj
+0 -6.7294 6.7294 0 108.6837 336.6528 Tm
+( )Tj
+/TT4 1 Tf
+0 -8.9725 8.9725 0 108.6837 334.9704 Tm
+(h)Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 113.17 329.8861 Tm
+0.0079 Tc
+(-1)Tj
+/TT4 1 Tf
+0 -8.9725 8.9725 0 108.6837 323.5396 Tm
+0 Tc
+(r)Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 107.1883 319.4816 Tm
+(i)Tj
+0 -8.9725 8.9725 0 108.6837 317.3654 Tm
+0.0023 Tc
+0.0237 Tw
+[( where the matrix )]TJ
+/TT4 1 Tf
+7.4116 0 TD
+0 Tc
+0 Tw
+(h)Tj
+/TT2 1 Tf
+0.5667 0 TD
+0.0098 Tc
+(={)Tj
+/TT4 1 Tf
+1.0636 0 TD
+0 Tc
+(a)Tj
+/TT2 1 Tf
+0.5094 0 TD
+(,)Tj
+0 -6.7294 6.7294 0 108.6837 229.381 Tm
+( )Tj
+/TT4 1 Tf
+0 -8.9725 8.9725 0 108.6837 227.6987 Tm
+(b)Tj
+/TT2 1 Tf
+0.5667 0 TD
+(,)Tj
+0 -6.7294 6.7294 0 108.6837 220.3287 Tm
+( )Tj
+/TT4 1 Tf
+0 -8.9725 8.9725 0 108.6837 218.6463 Tm
+(c)Tj
+/TT2 1 Tf
+0.4523 0 TD
+0.0026 Tc
+0.0255 Tw
+(} is defined from the basis vectors of the MD)Tj
+-19.9499 -1 TD
+-0.0073 Tc
+0 Tw
+(box. The scaled space is cubic and facilitates easy assignment of particles to processors. The scaled)Tj
+0 -1.3333 TD
+-0.0049 Tc
+(space also facilitates the assignment of atoms to the N)Tj
+0 -7.4771 7.4771 0 86.2525 201.9147 Tm
+0 Tc
+(c)Tj
+0 -6.7294 6.7294 0 84.7571 198.6372 Tm
+(x)Tj
+/TT8 1 Tf
+0 -8.9725 8.9725 0 87.748 195.3144 Tm
+(◊)Tj
+/TT2 1 Tf
+0.542 0 TD
+(N)Tj
+0 -7.4771 7.4771 0 86.2525 184.0524 Tm
+(c)Tj
+0 -6.7294 6.7294 0 84.7571 180.7749 Tm
+(y)Tj
+/TT8 1 Tf
+0 -8.9725 8.9725 0 87.748 177.4521 Tm
+(◊)Tj
+/TT2 1 Tf
+0.542 0 TD
+(N)Tj
+0 -7.4771 7.4771 0 86.2525 166.1901 Tm
+(c)Tj
+0 -6.7294 6.7294 0 84.7571 162.9125 Tm
+(z)Tj
+0 -8.9725 8.9725 0 87.748 159.9257 Tm
+-0.008 Tc
+(=N)Tj
+0 -7.4771 7.4771 0 86.2525 148.5295 Tm
+-0.0043 Tc
+(c )Tj
+0 -8.9725 8.9725 0 87.748 143.4058 Tm
+-0.0052 Tc
+(link-cells within each domain.)Tj
+-27.8833 -1.1667 TD
+-0.0082 Tc
+(The link-cell strategy [1] is useful both as a way to speed up the creation of a neighbour table [1] and)Tj
+0 -1 TD
+-0.0068 Tc
+0.0001 Tw
+(as a means of determining which atoms lie close to domain boundaries and, thus, have to be)Tj
+T*
+-0.0084 Tc
+0 Tw
+(communicated to neighbouring domains.)Tj
+ET
+endstream
+endobj
+12 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT6 6 0 R
+/TT7 7 0 R
+/TT8 13 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+15 0 obj
+<<
+/Length 25790
+>>
+stream
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 12.2294 632.3875 Tm
+0 g
+/GS1 gs
+0 Tc
+0 Tw
+(-5-)Tj
+-19.3333 60.1667 TD
+-0.0065 Tc
+(At this point, each PE is only aware of particles in its own domain. As atoms are assigned to)Tj
+0 -1 TD
+-0.0072 Tc
+(processors, it is inevitable that some molecules will be distributed among two or more of them.)Tj
+T*
+-0.0088 Tc
+(Decompositions based on molecular centres-of-mass can avoid this problem [16] but they are not an)Tj
+T*
+-0.0082 Tc
+(option in the general case where molecules span many domains.)Tj
+0 -2 TD
+-0.0088 Tc
+(Once the assignments to domains and link-cells have been made, the first step is a search for all)Tj
+0 -1 TD
+-0.0084 Tc
+(interacting pairs of atoms. This requires the communication of those coordinates required by other)Tj
+T*
+-0.0089 Tc
+(domains to complete their ëworkingí environment. In order to minimize communications at this stage,)Tj
+T*
+-0.0106 Tc
+(the conventional link-cell search pattern is modified [8]. A schematic representation of the form of the)Tj
+T*
+-0.0051 Tc
+(modification in 2-D is shown in Fig. 1; the extension to 3-D follows straightforwardly.)Tj
+ET
+/Pattern cs /P1 scn
+238.037 760.993 43.367 -42.619 re
+f
+0 G
+0 J 0 j 0.48 w 10 M []0 d
+1 i 
+238.411 760.619 42.619 -41.872 re
+S
+1 g
+238.037 675.755 43.367 43.367 re
+f
+238.411 718.748 42.619 -42.619 re
+S
+238.037 633.135 43.367 43.367 re
+f
+238.411 676.128 42.619 -42.619 re
+S
+0.969 g
+238.037 591.263 43.367 42.619 re
+f
+238.411 633.509 42.619 -41.872 re
+S
+/Pattern cs /P2 scn
+280.657 760.993 43.367 -42.619 re
+f
+281.03 760.619 42.619 -41.872 re
+S
+1 g
+280.657 675.755 43.367 43.367 re
+f
+281.03 718.748 42.619 -42.619 re
+S
+280.657 633.135 43.367 43.367 re
+f
+281.03 676.128 42.619 -42.619 re
+S
+0.969 g
+280.657 591.263 43.367 42.619 re
+f
+281.03 633.509 42.619 -41.872 re
+S
+/Pattern cs /P2 scn
+323.276 760.993 42.619 -42.619 re
+f
+323.65 760.619 41.872 -41.872 re
+S
+1 g
+323.276 675.755 42.619 43.367 re
+f
+323.65 718.748 41.872 -42.619 re
+S
+323.276 633.135 42.619 43.367 re
+f
+323.65 676.128 41.872 -42.619 re
+S
+0.969 g
+323.276 591.263 42.619 42.619 re
+f
+323.65 633.509 41.872 -41.872 re
+S
+/Pattern cs /P2 scn
+365.148 760.993 43.367 -42.619 re
+f
+365.521 760.619 42.619 -41.872 re
+S
+1 g
+365.148 675.755 43.367 43.367 re
+f
+365.521 718.748 42.619 -42.619 re
+S
+365.148 633.135 43.367 43.367 re
+f
+365.521 676.128 42.619 -42.619 re
+S
+0.969 g
+365.148 591.263 43.367 42.619 re
+f
+365.521 633.509 42.619 -41.872 re
+S
+/Pattern cs /P3 scn
+407.767 760.993 43.367 -42.619 re
+f
+408.141 760.619 42.619 -41.872 re
+S
+407.767 803.613 43.367 -43.367 re
+f
+408.141 803.239 42.619 -42.619 re
+S
+365.148 803.613 43.367 -43.367 re
+f
+365.521 803.239 42.619 -42.619 re
+S
+323.276 803.613 42.619 -43.367 re
+f
+323.65 803.239 41.872 -42.619 re
+S
+280.657 803.613 43.367 -43.367 re
+f
+281.03 803.239 42.619 -42.619 re
+S
+238.037 803.613 43.367 -43.367 re
+f
+238.411 803.239 42.619 -42.619 re
+S
+407.767 633.883 43.367 -42.619 re
+f
+408.141 633.509 42.619 -41.872 re
+S
+407.767 719.122 43.367 -43.367 re
+f
+408.141 718.748 42.619 -42.619 re
+S
+407.767 676.502 43.367 -43.367 re
+f
+408.141 676.128 42.619 -42.619 re
+S
+1 g
+433.189 493.314 34.395 73.275 re
+f
+q
+194.67 447.703 274.409 358.152 re
+W n
+433.563 566.215 33.647 -72.528 re
+S
+Q
+BT
+/TT4 1 Tf
+0 -13.4587 13.4587 0 255.9822 701.1765 Tm
+0 g
+2.6667 Tc
+(34)Tj
+2.8333 6.3333 TD
+0 Tc
+[(14)-2166.7(15)]TJ
+-6.2778 3.1111 TD
+[(17)-2166.7(18)-2111.1(19)]TJ
+ET
+421.226 612.947 m
+408.515 609.956 l
+408.515 615.938 l
+421.226 612.947 l
+f*
+386.831 613.695 22.431 -1.495 re
+f
+417.487 642.855 m
+410.758 631.64 l
+406.272 636.126 l
+417.487 642.855 l
+f*
+409.262 634.63 m
+409.262 633.135 l
+388.327 611.452 l
+386.831 611.452 l
+386.831 612.947 l
+407.767 634.63 l
+f
+1 g
+387.54 600.189 m
+380.524 600.189 374.829 605.884 374.829 612.9 c
+374.829 619.917 380.524 625.611 387.54 625.611 c
+394.557 625.611 400.251 619.917 400.251 612.9 c
+400.251 605.884 394.557 600.189 387.54 600.189 c
+f
+1.495 w 
+387.54 600.189 m
+380.524 600.189 374.829 605.884 374.829 612.9 c
+374.829 619.917 380.524 625.611 387.54 625.611 c
+394.557 625.611 400.251 619.917 400.251 612.9 c
+400.251 605.884 394.557 600.189 387.54 600.189 c
+s
+BT
+0 -13.4587 13.4587 0 383.0926 620.4241 Tm
+0 g
+(20)Tj
+ET
+336.735 655.566 m
+324.024 651.828 l
+324.024 658.557 l
+336.735 655.566 l
+f*
+301.592 656.314 23.179 -1.495 re
+f
+302.34 621.172 m
+299.349 633.883 l
+306.079 633.883 l
+302.34 621.172 l
+f*
+301.592 656.314 1.495 -23.179 re
+f
+332.248 624.91 m
+321.033 631.64 l
+325.519 636.126 l
+332.248 624.91 l
+f*
+324.024 634.63 m
+324.024 633.135 l
+322.528 633.135 l
+301.592 654.819 l
+301.592 656.314 l
+303.088 656.314 l
+f
+332.248 684.727 m
+325.519 673.511 l
+321.033 677.998 l
+332.248 684.727 l
+f*
+324.024 676.502 m
+324.024 675.007 l
+303.088 654.071 l
+301.592 654.071 l
+301.592 655.566 l
+322.528 676.502 l
+f
+1 g
+302.34 642.849 m
+295.324 642.849 289.629 648.544 289.629 655.56 c
+289.629 662.577 295.324 668.271 302.34 668.271 c
+309.357 668.271 315.051 662.577 315.051 655.56 c
+315.051 648.544 309.357 642.849 302.34 642.849 c
+f
+302.34 642.849 m
+295.324 642.849 289.629 648.544 289.629 655.56 c
+289.629 662.577 295.324 668.271 302.34 668.271 c
+309.357 668.271 315.051 662.577 315.051 655.56 c
+315.051 648.544 309.357 642.849 302.34 642.849 c
+s
+BT
+0 -13.4587 13.4587 0 341.2209 704.9151 Tm
+0 g
+(13)Tj
+6.6111 -6.3333 TD
+(5)Tj
+-9.4444 3.1667 TD
+2.6111 Tc
+[(78)-55.6(9)277.8(1)2611.1(0)]TJ
+ET
+195.418 762.489 257.212 -2.991 re
+f
+237.29 805.108 2.991 -257.212 re
+f
+407.019 805.108 2.991 -257.212 re
+f
+195.418 593.507 257.212 -2.991 re
+f
+294.115 740.057 m
+281.404 737.067 l
+281.404 743.048 l
+294.115 740.057 l
+f*
+259.721 740.805 22.431 -1.495 re
+f
+260.468 706.411 m
+256.73 719.122 l
+263.459 719.122 l
+260.468 706.411 l
+f*
+259.721 740.805 1.495 -22.431 re
+f
+290.377 710.149 m
+279.161 716.878 l
+283.647 721.365 l
+290.377 710.149 l
+f*
+282.152 719.869 m
+282.152 718.374 l
+280.657 718.374 l
+259.721 739.31 l
+259.721 740.805 l
+261.216 740.805 l
+f
+290.377 769.966 m
+283.647 758.75 l
+279.161 763.236 l
+290.377 769.966 l
+f*
+282.152 761.741 m
+282.152 760.245 l
+261.216 739.31 l
+259.721 739.31 l
+259.721 740.805 l
+280.657 761.741 l
+f
+260.468 773.704 m
+256.73 760.993 l
+263.459 760.993 l
+260.468 773.704 l
+f*
+259.721 761.741 1.495 -22.431 re
+f
+1 g
+260.46 727.389 m
+253.444 727.389 247.749 733.084 247.749 740.1 c
+247.749 747.117 253.444 752.811 260.46 752.811 c
+267.477 752.811 273.171 747.117 273.171 740.1 c
+273.171 733.084 267.477 727.389 260.46 727.389 c
+f
+260.46 727.389 m
+253.444 727.389 247.749 733.084 247.749 740.1 c
+247.749 747.117 253.444 752.811 260.46 752.811 c
+267.477 752.811 273.171 747.117 273.171 740.1 c
+273.171 733.084 267.477 727.389 260.46 727.389 c
+s
+BT
+0 -13.4587 13.4587 0 255.9822 743.0482 Tm
+0 g
+0 Tc
+(2)Tj
+ET
+421.226 748.282 m
+410.01 755.012 l
+414.496 759.498 l
+421.226 748.282 l
+f*
+413.001 758.002 m
+413.001 756.507 l
+411.506 756.507 l
+386.831 781.929 l
+386.831 783.424 l
+388.327 783.424 l
+f
+378.606 740.057 m
+365.895 737.067 l
+365.895 743.048 l
+378.606 740.057 l
+f*
+344.212 740.805 22.431 -1.495 re
+f
+344.96 706.411 m
+341.969 719.122 l
+347.95 719.122 l
+344.96 706.411 l
+f*
+344.212 740.805 1.495 -22.431 re
+f
+374.868 710.149 m
+363.652 716.878 l
+368.138 721.365 l
+374.868 710.149 l
+f*
+366.643 719.869 m
+366.643 718.374 l
+365.148 718.374 l
+344.212 739.31 l
+344.212 740.805 l
+345.707 740.805 l
+f
+374.868 769.966 m
+368.138 758.75 l
+363.652 763.236 l
+374.868 769.966 l
+f*
+366.643 761.741 m
+366.643 760.245 l
+345.707 739.31 l
+344.212 739.31 l
+344.212 740.805 l
+365.148 761.741 l
+f
+344.96 773.704 m
+341.969 760.993 l
+347.95 760.993 l
+344.96 773.704 l
+f*
+344.212 761.741 1.495 -22.431 re
+f
+315.051 769.966 m
+326.267 763.236 l
+321.781 758.75 l
+315.051 769.966 l
+f*
+345.707 740.805 m
+345.707 739.31 l
+344.212 739.31 l
+323.276 760.245 l
+323.276 761.741 l
+324.771 761.741 l
+f
+1 g
+344.94 727.389 m
+337.924 727.389 332.229 733.084 332.229 740.1 c
+332.229 747.117 337.924 752.811 344.94 752.811 c
+351.957 752.811 357.651 747.117 357.651 740.1 c
+357.651 733.084 351.957 727.389 344.94 727.389 c
+f
+344.94 727.389 m
+337.924 727.389 332.229 733.084 332.229 740.1 c
+332.229 747.117 337.924 752.811 344.94 752.811 c
+351.957 752.811 357.651 747.117 357.651 740.1 c
+357.651 733.084 351.957 727.389 344.94 727.389 c
+s
+BT
+0 -13.4587 13.4587 0 341.2209 747.5344 Tm
+0 g
+(12)Tj
+ET
+1 g
+387.54 769.989 m
+380.524 769.989 374.829 775.684 374.829 782.7 c
+374.829 789.717 380.524 795.411 387.54 795.411 c
+394.557 795.411 400.251 789.717 400.251 782.7 c
+400.251 775.684 394.557 769.989 387.54 769.989 c
+f
+BT
+0 -13.4587 13.4587 0 382.3449 790.1538 Tm
+2 Tr
+0.162 w 
+(1)Tj
+0.5 0 TD
+(6)Tj
+-0.1667 -9.4444 TD
+(1)Tj
+0 3.1667 TD
+(6)Tj
+-0.3333 3.1667 TD
+(1)Tj
+0.5 0 TD
+(1)Tj
+-0.5 6.2778 TD
+(2)Tj
+0.5 0 TD
+(1)Tj
+ET
+429.42 727.389 m
+422.404 727.389 416.709 733.084 416.709 740.1 c
+416.709 747.117 422.404 752.811 429.42 752.811 c
+436.437 752.811 442.131 747.117 442.131 740.1 c
+442.131 733.084 436.437 727.389 429.42 727.389 c
+f
+BT
+0 -13.4587 13.4587 0 424.9643 747.5344 Tm
+(2)Tj
+0.5 0 TD
+(2)Tj
+2.6667 0 TD
+(2)Tj
+0.5 0 TD
+(3)Tj
+2.6111 0 TD
+(2)Tj
+0.5 0 TD
+(4)Tj
+2.6667 0 TD
+(2)Tj
+0.5 0 TD
+(5)Tj
+/TT2 1 Tf
+0 Tr
+0 g
+3.9444 2.2778 TD
+(Domain)Tj
+0 -1.0556 TD
+(Boundaries)Tj
+ET
+438.423 587.525 m
+445.152 580.796 l
+442.909 580.048 l
+440.666 578.552 l
+438.423 587.525 l
+f*
+451.134 566.589 m
+451.134 565.841 l
+450.386 565.841 l
+442.162 579.3 l
+442.162 580.048 l
+442.909 580.048 l
+f
+413.001 553.878 m
+420.478 548.644 l
+417.487 545.653 l
+413.001 553.878 l
+f*
+433.937 532.195 m
+433.937 531.447 l
+433.189 531.447 l
+418.235 546.401 l
+418.235 547.149 l
+418.983 547.149 l
+f
+/Pattern cs /P3 scn
+377.859 476.864 22.431 -21.684 re
+f
+0.48 w 
+378.233 476.49 21.684 -20.936 re
+S
+BT
+/TT4 1 Tf
+0 -8.9725 8.9725 0 391.3174 578.5524 Tm
+0 g
+(Link-cells receiving )Tj
+0 -1 TD
+(coordinate data )Tj
+ET
+0.969 g
+323.276 455.181 21.684 21.684 re
+f
+323.65 476.49 20.936 -20.936 re
+S
+1 g
+297.854 455.181 21.684 21.684 re
+f
+298.228 476.49 20.936 -20.936 re
+S
+/Pattern cs /P1 scn
+272.432 476.864 21.684 -21.684 re
+f
+272.806 476.49 20.936 -20.936 re
+S
+/P2 scn
+247.01 476.864 21.684 -21.684 re
+f
+247.384 476.49 20.936 -20.936 re
+S
+BT
+0 -10.4679 10.4679 0 329.2576 553.1304 Tm
+0 g
+(2 neighbours )Tj
+0 -2.4286 TD
+(4 neighbours )Tj
+T*
+(5 neighbours )Tj
+T*
+(6 neighbours )Tj
+ET
+q
+353.932 448.451 11.216 138.326 re
+W n
+0.71 w 
+355.48 586.03 m
+355.48 461.04 l
+S
+Q
+BT
+0 -10.4679 10.4679 0 356.1751 586.0295 Tm
+(Link-cells interacting with:-)Tj
+/TT6 1 Tf
+0 -8.9725 8.9725 0 187.9408 805.8557 Tm
+-0.0151 Tc
+0.0009 Tw
+[(Figure )5.6(1)-3848.3(A)-0.8( schematic 2-D representation of the li)]TJ
+22.6489 0 TD
+-0.0143 Tc
+0.0001 Tw
+(nk-cell neighbour search pattern used in the)Tj
+-15.4822 -1 TD
+-0.0098 Tc
+0 Tw
+(domain decomposition program. The thick black lines mark the boundaries)Tj
+T*
+-0.008 Tc
+(between regions which different processors are responsible for. In this example all)Tj
+T*
+-0.0094 Tc
+(the 16 link-cells that are resident on the central processor \(numbered in )Tj
+/TT10 1 Tf
+28.4086 0 TD
+-0.0107 Tc
+(bold)Tj
+/TT6 1 Tf
+1.7352 0 TD
+( type\))Tj
+-30.1438 -1 TD
+-0.0155 Tc
+(are searched using the pattern shown. In addition all the particles in the received)Tj
+0 -1.0833 TD
+-0.0042 Tc
+(cell )Tj
+2 Tr
+0.108 w 
+1 g
+1.6725 0 TD
+0 Tc
+(1)Tj
+0.4938 0 TD
+(6)Tj
+0 Tr
+0 g
+0.4938 0 TD
+-0.0048 Tc
+0.0001 Tw
+( are interacted with those in )Tj
+2 Tr
+1 g
+11.356 0 TD
+0 Tc
+0 Tw
+(2)Tj
+0.4938 0 TD
+(2)Tj
+0 Tr
+0 g
+0.4938 0 TD
+(.)Tj
+/TT2 1 Tf
+-22.1706 -2.5833 TD
+-0.011 Tc
+(A link-cell search for interacting pairs normally treats each link-cell in the same way. Particles within)Tj
+0 -1 TD
+-0.0107 Tc
+(a link-cell are interacted amongst themselves and then with the contents of half the 26 \(8 in 2-D\))Tj
+T*
+-0.0078 Tc
+0.0001 Tw
+(nearest neighbour link-cells [1]. If this search method was to be applied in a domain decomposition)Tj
+T*
+-0.0085 Tc
+0 Tw
+(code, it would require direct or indirect communications with 17 \(5 in 2-D\) of the nearest neighbour)Tj
+T*
+-0.0068 Tc
+0.0001 Tw
+(processors. By modifying the search pattern of link-cells according to their position within a domain,)Tj
+T*
+-0.0099 Tc
+0 Tw
+(direct and indirect communications are only required with 7 \(3 in 2-D\) of the nearest neighbour)Tj
+T*
+-0.0097 Tc
+(domains and can be accomplished efficiently with just three \(two in 2-D\) communication steps. The)Tj
+T*
+-0.0058 Tc
+(flow of information during these three communication steps [7] is demonstrated in Fig. 2.)Tj
+65.2812 -4.9167 TD
+0 Tc
+(-6-)Tj
+ET
+514.689 141.611 m
+511.698 154.322 l
+517.68 154.322 l
+514.689 141.611 l
+f*
+513.942 170.024 1.495 -16.45 re
+f
+546.093 169.276 m
+533.382 165.538 l
+533.382 172.267 l
+546.093 169.276 l
+f*
+513.942 170.024 20.188 -1.495 re
+f
+531.887 152.079 m
+520.671 158.808 l
+525.157 163.295 l
+531.887 152.079 l
+f*
+523.662 161.799 m
+523.662 160.304 l
+522.166 160.304 l
+513.942 168.529 l
+513.942 170.024 l
+515.437 170.024 l
+f
+BT
+0 -10.4679 10.4679 0 513.1938 140.1157 Tm
+(x)Tj
+ET
+q
+546.841 164.042 11.216 9.72 re
+W n
+BT
+0 -10.4679 10.4679 0 549.0838 173.0149 Tm
+(y)Tj
+ET
+Q
+BT
+0 -10.4679 10.4679 0 529.6434 151.3313 Tm
+(z)Tj
+ET
+542.354 251.524 m
+533.382 249.281 l
+533.382 253.767 l
+542.354 251.524 l
+f*
+533.382 251.524 m
+533.382 250.776 l
+515.437 250.777 l
+515.437 251.524 l
+516.185 251.524 l
+f
+516.932 225.354 m
+514.689 234.327 l
+519.175 234.327 l
+516.932 225.354 l
+f*
+516.185 251.524 0.748 -17.945 re
+f
+516.932 277.694 m
+519.175 268.721 l
+514.689 268.721 l
+516.932 277.694 l
+f*
+516.185 268.721 0.748 -17.945 re
+f
+490.763 251.524 m
+499.735 253.767 l
+499.735 249.281 l
+490.763 251.524 l
+f*
+516.932 251.524 m
+516.932 250.776 l
+498.987 250.777 l
+498.987 251.524 l
+499.735 251.524 l
+f
+534.13 230.588 m
+526.653 235.822 l
+528.148 237.318 l
+530.391 238.813 l
+534.13 230.588 l
+f*
+500.483 273.208 m
+507.212 267.226 l
+504.221 264.235 l
+500.483 273.208 l
+f*
+528.148 237.318 m
+528.148 236.57 l
+527.4 236.57 l
+504.969 264.983 l
+504.969 265.731 l
+505.717 265.731 l
+f
+BT
+/TT4 1 Tf
+0 -10.4679 10.4679 0 513.1938 223.1113 Tm
+(East)Tj
+-7.4286 0 TD
+(West)Tj
+6.6429 2.3571 TD
+(Above)Tj
+-6.2857 -4.5714 TD
+(Below)Tj
+3.2857 5.3572 TD
+(North)Tj
+-0.1429 -5.7143 TD
+(South)Tj
+ET
+419.73 237.318 m
+419.73 235.822 l
+418.235 235.822 l
+375.616 277.694 l
+375.616 279.189 l
+377.111 279.189 l
+f
+1 g
+376.363 278.442 63.555 42.619 re
+f
+q
+365.148 106.469 193.656 216.088 re
+W n
+1.495 w 
+376.363 321.061 63.555 -42.619 re
+S
+Q
+0 g
+418.235 321.061 0.748 -43.367 re
+f
+397.299 321.061 0.748 -43.367 re
+f
+375.616 300.125 64.303 -0.748 re
+f
+483.285 237.318 m
+483.285 235.822 l
+481.79 235.822 l
+439.171 277.694 l
+439.171 279.189 l
+440.666 279.189 l
+f
+483.285 279.189 m
+483.285 277.694 l
+481.79 277.694 l
+439.171 320.313 l
+439.171 321.809 l
+440.666 321.809 l
+f
+481.79 279.189 1.495 -43.367 re
+f
+418.235 237.318 65.051 -1.495 re
+f
+407.767 247.038 64.303 -0.748 re
+f
+397.299 257.506 64.303 -0.748 re
+f
+386.083 267.974 64.303 -0.748 re
+f
+439.918 236.57 m
+439.918 235.822 l
+439.171 235.822 l
+397.299 277.694 l
+397.299 278.442 l
+398.047 278.442 l
+f
+461.602 236.57 m
+461.602 235.822 l
+460.854 235.822 l
+418.235 277.694 l
+418.235 278.442 l
+418.983 278.442 l
+f
+482.538 257.506 m
+482.538 256.758 l
+481.79 256.758 l
+439.171 299.378 l
+439.171 300.125 l
+439.918 300.125 l
+f
+471.322 288.91 0.748 -42.619 re
+f
+460.854 300.125 0.748 -43.367 re
+f
+449.639 310.593 0.748 -43.367 re
+f
+419.73 126.657 m
+419.73 125.162 l
+418.235 125.162 l
+375.616 167.033 l
+375.616 168.529 l
+377.111 168.529 l
+f
+1 g
+376.363 167.781 63.555 42.619 re
+f
+1.495 w 
+376.363 210.4 63.555 -42.619 re
+S
+0 g
+418.235 211.148 1.495 -44.115 re
+f
+397.299 211.148 1.495 -44.115 re
+f
+375.616 190.212 65.051 -1.495 re
+f
+483.285 126.657 m
+483.285 125.162 l
+481.79 125.162 l
+439.171 167.033 l
+439.171 168.529 l
+440.666 168.529 l
+f
+483.285 168.529 m
+483.285 167.033 l
+481.79 167.033 l
+439.171 209.653 l
+439.171 211.148 l
+440.666 211.148 l
+f
+481.79 168.529 1.495 -43.367 re
+f
+418.235 126.657 65.051 -1.495 re
+f
+407.767 137.125 65.051 -1.495 re
+f
+397.299 147.593 65.051 -1.495 re
+f
+386.083 158.061 65.051 -1.495 re
+f
+440.666 126.657 m
+440.666 125.162 l
+439.171 125.162 l
+397.299 167.033 l
+397.299 168.529 l
+398.794 168.529 l
+f
+462.35 126.657 m
+462.35 125.162 l
+460.854 125.162 l
+418.235 167.033 l
+418.235 168.529 l
+419.73 168.529 l
+f
+483.285 147.593 m
+483.285 146.097 l
+481.79 146.097 l
+439.171 188.717 l
+439.171 190.212 l
+440.666 190.212 l
+f
+471.322 178.997 1.495 -43.367 re
+f
+460.854 190.212 1.495 -44.115 re
+f
+449.639 200.68 1.495 -44.115 re
+f
+439.918 210.4 0.748 -43.367 re
+f
+483.285 125.909 m
+483.285 125.162 l
+482.538 125.162 l
+439.918 167.033 l
+439.918 167.781 l
+440.666 167.781 l
+f
+439.171 210.4 21.684 -0.748 re
+f
+439.171 189.464 21.684 -0.748 re
+f
+501.978 167.781 0.748 -42.619 re
+f
+449.639 157.313 20.936 -0.748 re
+f
+502.726 146.845 m
+502.726 146.097 l
+501.978 146.097 l
+460.107 188.717 l
+460.107 189.464 l
+460.854 189.464 l
+f
+492.258 177.501 0.748 -41.872 re
+f
+481.79 188.717 0.748 -42.619 re
+f
+470.574 199.185 0.748 -41.872 re
+f
+460.107 210.4 0.748 -43.367 re
+f
+439.918 168.529 20.188 -0.748 re
+f
+502.726 125.909 m
+502.726 125.162 l
+501.978 125.162 l
+460.107 167.781 l
+460.107 168.529 l
+460.854 168.529 l
+f
+502.726 167.781 m
+502.726 167.033 l
+501.978 167.033 l
+460.854 209.653 l
+460.854 210.4 l
+461.602 210.4 l
+f
+461.602 146.845 20.188 -0.748 re
+f
+471.322 136.377 20.936 -0.748 re
+f
+481.79 125.909 20.936 -0.748 re
+f
+BT
+0 -17.945 17.945 0 402.533 239.5609 Tm
+(\(1\))Tj
+ET
+367.391 232.084 m
+385.336 236.57 l
+385.336 227.598 l
+367.391 232.084 l
+f*
+383.84 233.579 11.963 -2.991 re
+f
+BT
+0 -17.945 17.945 0 401.7853 128.1524 Tm
+(\(2\))Tj
+ET
+389.074 110.207 m
+384.588 128.152 l
+393.561 128.152 l
+389.074 110.207 l
+f*
+387.579 138.62 2.991 -11.963 re
+f
+279.161 349.474 0.748 -21.684 re
+f
+236.542 349.474 85.239 -0.748 re
+f
+363.652 306.855 m
+363.652 306.107 l
+362.904 306.107 l
+321.781 348.726 l
+321.781 349.474 l
+322.528 349.474 l
+f
+257.478 349.474 0.748 -21.684 re
+f
+236.542 349.474 0.748 -21.684 re
+f
+300.097 349.474 0.748 -21.684 re
+f
+321.033 348.726 0.748 -21.684 re
+f
+331.501 338.258 0.748 -21.684 re
+f
+341.969 327.79 0.748 -22.431 re
+f
+353.184 316.575 0.748 -21.684 re
+f
+363.652 306.107 m
+363.652 285.171 l
+362.904 285.171 l
+362.905 306.107 l
+f
+280.657 243.299 m
+280.657 241.804 l
+279.161 241.804 l
+236.542 284.423 l
+236.542 285.919 l
+238.037 285.919 l
+f
+1 g
+237.29 285.171 63.555 41.872 re
+f
+237.29 327.043 63.555 -41.872 re
+S
+0 g
+279.161 327.79 1.495 -43.367 re
+f
+258.225 327.79 1.495 -43.367 re
+f
+236.542 306.855 65.051 -1.495 re
+f
+344.212 243.299 m
+344.212 241.804 l
+342.716 241.804 l
+300.097 284.423 l
+300.097 285.919 l
+301.592 285.919 l
+f
+344.212 285.919 m
+344.212 284.423 l
+342.716 284.423 l
+300.097 327.043 l
+300.097 328.538 l
+301.592 328.538 l
+f
+342.716 285.919 1.495 -44.115 re
+f
+279.161 243.299 65.051 -1.495 re
+f
+268.693 253.767 65.051 -1.495 re
+f
+258.225 264.235 65.051 -1.495 re
+f
+247.01 275.451 65.051 -1.495 re
+f
+301.592 243.299 m
+301.592 241.804 l
+300.097 241.804 l
+258.225 284.423 l
+258.225 285.919 l
+259.721 285.919 l
+f
+323.276 243.299 m
+323.276 241.804 l
+321.781 241.804 l
+279.161 284.423 l
+279.161 285.919 l
+280.657 285.919 l
+f
+344.212 264.235 m
+344.212 262.74 l
+342.716 262.74 l
+300.097 305.359 l
+300.097 306.855 l
+301.592 306.855 l
+f
+332.248 296.387 1.495 -44.115 re
+f
+321.781 306.855 1.495 -44.115 re
+f
+310.565 317.323 1.495 -43.367 re
+f
+300.845 327.043 0.748 -42.619 re
+f
+344.212 242.552 m
+344.212 241.804 l
+343.464 241.804 l
+300.845 284.423 l
+300.845 285.171 l
+301.592 285.171 l
+f
+300.097 327.79 21.684 -0.748 re
+f
+300.097 306.855 21.684 -0.748 re
+f
+363.652 285.171 m
+363.652 241.804 l
+362.904 241.804 l
+362.905 285.171 l
+f
+310.565 274.703 20.936 -0.748 re
+f
+363.652 264.235 m
+363.652 263.488 l
+362.904 263.488 l
+321.033 305.359 l
+321.033 306.107 l
+321.781 306.107 l
+f
+353.184 294.891 0.748 -42.619 re
+f
+342.716 306.107 0.748 -42.619 re
+f
+331.501 316.575 0.748 -42.619 re
+f
+321.033 327.043 0.748 -42.619 re
+f
+300.845 285.171 20.188 -0.748 re
+f
+363.652 243.299 m
+363.652 242.552 l
+362.904 242.552 l
+321.033 285.171 l
+321.033 285.919 l
+321.781 285.919 l
+f
+363.652 285.171 m
+363.652 284.423 l
+362.904 284.423 l
+321.781 326.295 l
+321.781 327.043 l
+322.528 327.043 l
+f
+322.528 263.488 20.188 -0.748 re
+f
+332.248 253.02 20.936 -0.748 re
+f
+342.716 242.552 20.936 -0.748 re
+f
+226.822 196.942 85.239 -0.748 re
+f
+363.652 144.602 m
+363.652 143.854 l
+362.904 143.854 l
+312.06 195.446 l
+312.06 196.194 l
+312.808 196.194 l
+f
+226.074 196.942 0.748 -64.303 re
+f
+331.501 176.006 0.748 -21.684 re
+f
+341.969 165.538 0.748 -22.431 re
+f
+353.184 154.322 0.748 -21.684 re
+f
+363.652 143.854 m
+363.652 122.918 l
+362.904 122.918 l
+362.905 143.854 l
+f
+280.657 81.047 m
+280.657 79.551 l
+279.161 79.551 l
+236.542 122.171 l
+236.542 123.666 l
+238.037 123.666 l
+f
+1 g
+237.29 122.918 63.555 41.872 re
+f
+237.29 164.79 63.555 -41.872 re
+S
+0 g
+279.161 165.538 1.495 -43.367 re
+f
+258.225 165.538 1.495 -43.367 re
+f
+236.542 144.602 65.051 -1.495 re
+f
+344.212 81.047 m
+344.212 79.551 l
+342.716 79.551 l
+300.097 122.171 l
+300.097 123.666 l
+301.592 123.666 l
+f
+344.212 123.666 m
+344.212 122.171 l
+342.716 122.171 l
+300.097 164.79 l
+300.097 166.285 l
+301.592 166.285 l
+f
+342.716 123.666 1.495 -44.115 re
+f
+279.161 81.047 65.051 -1.495 re
+f
+268.693 91.515 65.051 -1.495 re
+f
+258.225 101.983 65.051 -1.495 re
+f
+247.01 113.198 65.051 -1.495 re
+f
+301.592 81.047 m
+301.592 79.551 l
+300.097 79.551 l
+258.225 122.171 l
+258.225 123.666 l
+259.721 123.666 l
+f
+323.276 81.047 m
+323.276 79.551 l
+321.781 79.551 l
+279.161 122.171 l
+279.161 123.666 l
+280.657 123.666 l
+f
+344.212 101.983 m
+344.212 100.487 l
+342.716 100.487 l
+300.097 143.107 l
+300.097 144.602 l
+301.592 144.602 l
+f
+332.248 134.134 1.495 -44.115 re
+f
+321.781 144.602 1.495 -44.115 re
+f
+310.565 155.07 1.495 -43.367 re
+f
+300.845 164.79 0.748 -42.619 re
+f
+344.212 80.299 m
+344.212 79.551 l
+343.464 79.551 l
+300.845 122.171 l
+300.845 122.918 l
+301.592 122.918 l
+f
+226.822 174.51 84.491 -0.748 re
+f
+363.652 122.918 m
+363.652 79.551 l
+362.904 79.551 l
+362.905 122.918 l
+f
+310.565 112.451 20.936 -0.748 re
+f
+363.652 101.983 m
+363.652 101.235 l
+362.904 101.235 l
+312.06 152.827 l
+312.06 153.574 l
+312.808 153.574 l
+f
+353.184 132.639 0.748 -42.619 re
+f
+342.716 143.854 0.748 -42.619 re
+f
+331.501 154.322 0.748 -42.619 re
+f
+321.033 186.474 0.748 -64.303 re
+f
+300.845 122.918 20.188 -0.748 re
+f
+363.652 81.047 m
+363.652 80.299 l
+362.904 80.299 l
+321.033 122.918 l
+321.033 123.666 l
+321.781 123.666 l
+f
+363.652 122.918 m
+363.652 122.171 l
+362.904 122.171 l
+311.313 173.763 l
+311.313 174.51 l
+312.06 174.51 l
+f
+322.528 101.235 20.188 -0.748 re
+f
+332.248 90.767 20.936 -0.748 re
+f
+342.716 80.299 20.936 -0.748 re
+f
+310.565 196.194 0.748 -63.555 re
+f
+290.377 196.942 0.748 -65.798 re
+f
+301.592 122.171 m
+301.592 121.423 l
+300.845 121.423 l
+291.125 131.143 l
+291.125 131.891 l
+291.872 131.891 l
+f
+279.909 122.918 m
+279.909 122.171 l
+279.161 122.171 l
+270.189 131.143 l
+270.189 131.891 l
+270.936 131.891 l
+f
+226.822 132.639 84.491 -0.748 re
+f
+226.822 154.322 84.491 -0.748 re
+f
+269.441 196.942 0.748 -65.051 re
+f
+248.505 197.689 0.748 -65.798 re
+f
+258.973 122.918 m
+258.973 122.171 l
+258.225 122.171 l
+249.253 131.143 l
+249.253 131.891 l
+250.001 131.891 l
+f
+237.29 122.918 m
+237.29 122.171 l
+236.542 122.171 l
+227.569 131.143 l
+227.569 131.891 l
+228.317 131.891 l
+f
+BT
+0 -17.945 17.945 0 262.7116 244.0471 Tm
+(\(3\))Tj
+ET
+303.088 211.148 m
+287.386 220.868 l
+293.368 226.85 l
+303.088 211.148 l
+f*
+291.872 225.354 m
+291.872 222.364 l
+288.881 222.364 l
+281.404 229.841 l
+281.404 232.831 l
+284.395 232.831 l
+f
+BT
+/TT6 1 Tf
+0 -8.9725 8.9725 0 219.3445 393.5887 Tm
+-0.0153 Tc
+-0.0045 Tw
+[(Figure 2)-3848.5(The )-7.9(flow )]TJ
+10.7821 0 TD
+-0.0119 Tc
+0 Tw
+(of information in the communication stage prior to the all-pair search.)Tj
+-3.6154 -1.3333 TD
+-0.0048 Tc
+(The figure shows an initial set of 2)Tj
+/TT8 1 Tf
+0 -8.9725 8.9725 -1.9072 207.3812 206.4719 Tm
+0 Tc
+(◊)Tj
+/TT6 1 Tf
+0 -8.9725 8.9725 0 207.3812 201.6096 Tm
+(3)Tj
+/TT8 1 Tf
+0 -8.9725 8.9725 -1.9072 207.3812 197.1802 Tm
+(◊)Tj
+/TT6 1 Tf
+0 -8.9725 8.9725 0 207.3812 192.3179 Tm
+-0.0048 Tc
+(4 link-cells in a domain \(top left\). At the)Tj
+-15.2653 -1.0833 TD
+-0.0134 Tc
+(first communication step all PEs pass to their southern neighbour all the)Tj
+0 -1 TD
+-0.0088 Tc
+0.0001 Tw
+(coordinates of sites in the link-cells on their southern periphery. This results in)Tj
+T*
+-0.0117 Tc
+0 Tw
+(each PE now having access to coordinates in an extra layer of link-cells \(top right\).)Tj
+T*
+-0.0062 Tc
+(Two further communication stages follow, to the east and to the above neighbours,)Tj
+T*
+-0.0089 Tc
+(in an analogous manner to give the final working environment \(lower right\).)Tj
+/TT2 1 Tf
+-7.1667 -2.5 TD
+-0.0038 Tc
+(As can be seen from Fig. 2, a subject domain's working environment of link-cells is built up by)Tj
+0 -1 TD
+-0.009 Tc
+(communications in each of the three perpendicular directions, )Tj
+/TT6 1 Tf
+24.4049 0 TD
+-0.0068 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.1943 0 TD
+-0.0092 Tc
+-0.0001 Tw
+( with respect to the aforementioned)Tj
+-25.5992 -1 TD
+-0.0087 Tc
+0 Tw
+(scaled space used to assign particles initially to PEs. The nomenclature used is that the neighbouring)Tj
+T*
+-0.0085 Tc
+(PE in the -y \(ìsouthwardî\) direction is called South, that in the +x \(ìeastwardî\) direction is called)Tj
+T*
+-0.0093 Tc
+(East and that in the +z ìupwardî direction is called Above. In the first stage of communication, each)Tj
+T*
+-0.0082 Tc
+(PE simultaneously sends information for all particles found on the southern layer of link-cells to its)Tj
+T*
+-0.0077 Tc
+(southern neighbour. At the same time, each PE receives some information from its northern)Tj
+T*
+-0.0055 Tc
+(neighbour. This increases the working environment of a PE by one layer of link-cells. In the second)Tj
+T*
+-0.0037 Tc
+(and third stages similar exchanges occur in the other two directions, as shown in Fig. 2.)Tj
+0 -2 TD
+-0.0083 Tc
+0.0001 Tw
+(Following this initial communication stage, each processor has access to enough of the coordinate)Tj
+0 -1 TD
+-0.0093 Tc
+0 Tw
+(information to perform its share of the all-interacting-pairs search. This initial pair search not only)Tj
+ET
+endstream
+endobj
+16 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT6 6 0 R
+/TT8 13 0 R
+/TT10 17 0 R
+>>
+/Pattern <<
+/P1 18 0 R
+/P2 19 0 R
+/P3 20 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+22 0 obj
+<<
+/Length 27435
+>>
+stream
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 12.2294 632.3875 Tm
+0 g
+/GS1 gs
+0 Tc
+0 Tw
+(-7-)Tj
+-19.3333 60.1667 TD
+-0.008 Tc
+(allows the interaction of all non-bonded pairs but also the formation of neighbour tables of non-)Tj
+0 -1 TD
+-0.0053 Tc
+(bonded pairs. These neighbour tables are used in subsequent steps until they become redundant. In)Tj
+T*
+-0.0066 Tc
+(the worst possible case, this is when any site has diffused a distance greater than or equal to half the)Tj
+T*
+-0.0084 Tc
+(shell width \(a parameter used in the construction of the neighbour table [7]\) since the last rebuild.)Tj
+T*
+-0.0065 Tc
+(Only at this stage is it also necessary for sites to get reassigned to different PEs, should they have)Tj
+T*
+-0.0064 Tc
+(diffused out of their previous home PEs, so as to ensure that sites appear in their correct link-cells for)Tj
+T*
+-0.0065 Tc
+(the next rebuild. Subsequent steps are handled by the neighbour tables and other lists formed so it is)Tj
+T*
+-0.0074 Tc
+(irrelevant if a site wanders out of the region that its home PE is nominally responsible for.)Tj
+/TT4 1 Tf
+1.5 -1.5 TD
+0.0262 Tc
+0.2614 Tw
+[(3)-140.5(.)-140.5(3)-2890.5(Domain decomposition for molecular systems)]TJ
+/TT2 1 Tf
+-1.5 -1 TD
+-0.0104 Tc
+0 Tw
+(The main problem encountered in applying domain decomposition to molecular systems is the unique)Tj
+T*
+-0.0089 Tc
+(identification of the n-plet groups required for multi-particle potentials and constraints. In their work)Tj
+T*
+-0.006 Tc
+(on a domain decomposition algorithm for a molecular system, Esselink and Hilbers [17] show that,)Tj
+/TT6 1 Tf
+T*
+-0.014 Tc
+(as long as the distance between any two atoms in an n-plet is no greater than that of the truncation)Tj
+T*
+-0.0153 Tc
+(distance of the non-bonded pair potential, it is certain that at least one processor will have all the n)Tj
+T*
+-0.0062 Tc
+(atoms in its working environment)Tj
+/TT2 1 Tf
+13.1908 0 TD
+-0.006 Tc
+(. As a result, no extra communication costs need to be incurred)Tj
+-13.1908 -1 TD
+-0.0074 Tc
+(over those of the search for all-interacting-pairs. The same result was also found for linear chain)Tj
+T*
+(systems [7], despite the fact that a different communication environment was used.)Tj
+0 -2 TD
+-0.0063 Tc
+(Given the above guiding principle, the problem thus reduces to one of )Tj
+/TT6 1 Tf
+27.7994 0 TD
+-0.0061 Tc
+(identifying)Tj
+/TT2 1 Tf
+4.2099 0 TD
+-0.0065 Tc
+( that processor)Tj
+-32.0093 -1 TD
+-0.01 Tc
+(which will be temporarily responsible for a particular n-plet and )Tj
+/TT6 1 Tf
+25.2204 0 TD
+-0.0102 Tc
+(signalling)Tj
+/TT2 1 Tf
+3.8988 0 TD
+-0.009 Tc
+( to it that this is the case.)Tj
+-29.1192 -1 TD
+-0.0093 Tc
+(Extensive details of the solution to this problem are given in [10]; in summary it involves the)Tj
+T*
+-0.0087 Tc
+(following novel features:-)Tj
+0 -2 TD
+-0.0099 Tc
+0.0002 Tw
+[(\(i\))-1426.1(In addition to its coordinates and velocities, each atom carries around with it details of its atom)]TJ
+2.3333 -1 TD
+-0.0091 Tc
+0 Tw
+(type, global atomic index, global molecular index and information concerning the neighbours)Tj
+T*
+-0.0052 Tc
+(with which it is has ëbondedí interactions.)Tj
+-2.3333 -2 TD
+-0.0182 Tc
+0.0175 Tw
+[(\(ii\))-1184.4(A)-17.4(l)-17.5(l)-17.4( b)-17.4(e)-17.5(n)-17.4(d)-17.5(s)-17.4(,)-17.4( t)-17.4(o)]TJ
+7.4622 0 TD
+-0.0007 Tc
+0 Tw
+(rsions and groups requiring special constraints, )Tj
+/TT6 1 Tf
+19.0429 0 TD
+0 Tc
+(e.g.)Tj
+/TT2 1 Tf
+1.4438 0 TD
+-0.0008 Tc
+( those for CH)Tj
+0 -7.4771 7.4771 0 303.8356 506.5858 Tm
+0 Tc
+(2)Tj
+0 -8.9725 8.9725 0 305.331 502.8473 Tm
+-0.0008 Tc
+( groups as in)Tj
+-31.4375 -1 TD
+-0.008 Tc
+([22], are assigned to a particular atom and are also carried by this atom whichever processor it)Tj
+T*
+0.0016 Tc
+0.0157 Tw
+(moves to.)Tj
+-2.3333 -2 TD
+-0.0206 Tc
+0 Tw
+[(\(iii\))-936.8(A)-13.9(t)-13.9( )]TJ
+3.5633 0 TD
+-0.0067 Tc
+(the first step, and other steps where the neighbour lists )Tj
+/TT6 1 Tf
+21.6363 0 TD
+-0.0068 Tc
+(etc)Tj
+/TT2 1 Tf
+1.1453 0 TD
+-0.0065 Tc
+(. have to be rebuilt, a table is)Tj
+-24.0116 -1 TD
+-0.007 Tc
+(required indicating the local index and processor identity of all atoms known to each PE, )Tj
+/TT6 1 Tf
+35.1381 0 TD
+-0.0072 Tc
+(i.e.)Tj
+/TT2 1 Tf
+-35.1381 -1 TD
+-0.0076 Tc
+(both those a processor is directly responsible for and all those it receives during the)Tj
+T*
+-0.0095 Tc
+(communication stages prior to the search for all interacting pairs.)Tj
+-2.3333 -2 TD
+-0.007 Tc
+0.0001 Tw
+[(\(iv\))-923.2(Using the tables formed in \(iii\), any two atoms found during the pair search to be involved in a)]TJ
+2.3333 -1 TD
+-0.0085 Tc
+0 Tw
+(ëbondedí interaction make further lists which contain each others indices and processor)Tj
+T*
+-0.0098 Tc
+(identities in all the PEs they are known in. This information is communicated back to each)Tj
+T*
+-0.0057 Tc
+(atomís home PE at the end of the pair search. By doing this, each atom knows for each of its)Tj
+T*
+-0.0076 Tc
+(ëbondedí neighbours all PEs in which they both appear in and their local indices therein. It is)Tj
+T*
+-0.0087 Tc
+(then a simple matter of finding for each n-plet the processor which is aware of all n atoms and)Tj
+T*
+-0.0079 Tc
+(signalling to it that it is responsible for that n-plet. This procedure allows each PE to build lists)Tj
+T*
+-0.0083 Tc
+(of all the n-plets it will handle for this and following steps until the lists are deemed redundant.)Tj
+-2.3333 -2 TD
+(Although this procedure increases some of the communication costs, much of the information is)Tj
+0 -1 TD
+-0.005 Tc
+(invariant for the period that each processor works with the same set of atoms, )Tj
+/TT6 1 Tf
+30.8457 0 TD
+-0.0038 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.2063 0 TD
+-0.0058 Tc
+( between neighbour)Tj
+-32.0521 -1 TD
+-0.0085 Tc
+(table rebuilds, and so the effect of the extra overhead is ameliorated.)Tj
+0 -2 TD
+-0.0073 Tc
+(Previously, we discussed a parallel implementation of S)Tj
+0 -7.4771 7.4771 0 107.936 608.6318 Tm
+-0.0125 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 107.936 588.2392 Tm
+-0.0072 Tc
+( appropriate for rigid bond constraints)Tj
+-24.2537 -1 TD
+-0.0088 Tc
+0.0001 Tw
+([7] and this approach has only to be slightly adapted to accommodate the special CH)Tj
+33.1531 -0.1667 TD
+0 Tc
+0 Tw
+(2)Tj
+0.4893 0.1667 TD
+-0.0111 Tc
+( group)Tj
+-33.6424 -1.0833 TD
+-0.0081 Tc
+(constraints. At each S)Tj
+0 -7.4771 7.4771 0 89.2433 729.2092 Tm
+-0.0142 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 89.2433 708.8675 Tm
+-0.0078 Tc
+( iteration, the rigid bond constraints are imposed first and all)Tj
+-10.8095 -1 TD
+(displacements to atoms occurring in other PEs are sent back to the home PEs. The resulting)Tj
+T*
+-0.0054 Tc
+(positions, updated for the imposition of the rigid bond constraints, are then used as input to an)Tj
+T*
+-0.0052 Tc
+(iteration of the CH)Tj
+7.4277 -0.1667 TD
+0 Tc
+(2)Tj
+0.4934 0.1667 TD
+-0.0052 Tc
+( special constraints. As for the rigid bonds, this involves an outward)Tj
+-7.9211 -1.0833 TD
+-0.0085 Tc
+(communication of current positions followed by a return of any displacements to atoms which occur)Tj
+0 -1 TD
+-0.0052 Tc
+(in other PEs. Using this approach, the algorithm converges within a reasonable number of iterations.)Tj
+65.2812 -3.5 TD
+0 Tc
+(-8-)Tj
+/TT4 1 Tf
+-17.8333 60.1667 TD
+0.0175 Tc
+0.1746 Tw
+[(3)-149.2(.)-149.2(4)-2899.2(The general purpose parallel MD code )]TJ
+/TT10 1 Tf
+22.86 0 TD
+0.0706 Tc
+0 Tw
+(ddgmq)Tj
+/TT2 1 Tf
+-24.36 -1 TD
+-0.0048 Tc
+(Using the techniques summarized above, an existing general purpose scalar code, )Tj
+/TT6 1 Tf
+32.4634 0 TD
+-0.0068 Tc
+(gmq)Tj
+/TT2 1 Tf
+1.7017 0 TD
+-0.0052 Tc
+-0.0001 Tw
+(, has been)Tj
+-34.1651 -1 TD
+0 Tw
+(successfully parallelized. The working code, )Tj
+/TT6 1 Tf
+17.8367 0 TD
+-0.0072 Tc
+(ddgmq)Tj
+/TT2 1 Tf
+2.6859 0 TD
+-0.0057 Tc
+(, has been implemented on Silicon Graphics)Tj
+-20.5226 -1 TD
+-0.0047 Tc
+(Power Challenge and Origin 2000, IBM SP2, Cray T3E and Sun Enterprise 10000 machines with)Tj
+T*
+-0.0072 Tc
+(communications between processors being handled by calls to the MPI message passing library. The)Tj
+T*
+-0.009 Tc
+(program contains a parallel S)Tj
+0 -7.4771 7.4771 0 507.2122 290.7885 Tm
+-0.0154 Tc
+(HAKE)Tj
+0 -8.9725 8.9725 0 507.2122 270.4827 Tm
+-0.009 Tc
+( algorithm to handle both rigid bond constraints and special CH)Tj
+0 -7.4771 7.4771 0 505.7167 47.3103 Tm
+0 Tc
+(2)Tj
+0 -8.9725 8.9725 0 498.2397 393.5887 Tm
+-0.0082 Tc
+(constraints. Simulations are performed using 3-D periodic boundary conditions within a primary MD)Tj
+T*
+-0.0073 Tc
+(box defined by three arbitrary basis vectors, )Tj
+/TT6 1 Tf
+17.4898 0 TD
+-0.0058 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.1987 0 TD
+-0.0075 Tc
+( even triclinic cells can be simulated. Techniques are)Tj
+-18.6885 -1 TD
+-0.0084 Tc
+(implemented for allowing control of the temperature and the pressure tensor in the system. Full)Tj
+T*
+-0.0073 Tc
+(details of the functionality of the )Tj
+/TT6 1 Tf
+13.0656 0 TD
+-0.0113 Tc
+(gmq)Tj
+/TT2 1 Tf
+1.6882 0 TD
+-0.0077 Tc
+( and )Tj
+/TT6 1 Tf
+1.9055 0 TD
+-0.0108 Tc
+(ddgmq)Tj
+/TT2 1 Tf
+2.6684 0 TD
+-0.0082 Tc
+( codes and their mode of operation can be found in)Tj
+-19.3277 -1 TD
+-0.0057 Tc
+(the manual [6].)Tj
+0 -2 TD
+-0.0075 Tc
+(The code is currently being used to perform ~1 ns simulations involving up to ~100000 atoms with)Tj
+0 -1 TD
+-0.013 Tc
+(full account taken of the electrostatic interactions [5]. The new parallelized general MD code can)Tj
+T*
+-0.0063 Tc
+0.0001 Tw
+(perform such computations in reasonable times \(2 or 3 weeks\). Such simulations were unfeasible to)Tj
+T*
+-0.0078 Tc
+0 Tw
+(do within a reasonable time scale using scalar codes.)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 395.0559 393.5887 Tm
+0.0359 Tc
+[(4)-142.7(.)-1607(Benchmark)]TJ
+/TT2 1 Tf
+0 -8.9725 8.9725 0 381.5972 393.5887 Tm
+-0.0095 Tc
+(The benchmark system is a small peptide called echistatin, which contains 49 amino acids \(713)Tj
+0 -1.4167 TD
+-0.0103 Tc
+(atoms\), immersed in a 60)Tj
+0 -7.4771 7.4771 0 373.3724 304.8443 Tm
+0 Tc
+(3)Tj
+0 -8.9725 8.9725 0 368.8862 301.1962 Tm
+-0.0117 Tc
+( ≈)Tj
+0 -7.4771 7.4771 0 373.3724 292.6843 Tm
+0 Tc
+(3)Tj
+0 -8.9725 8.9725 0 368.8862 289.0363 Tm
+-0.0098 Tc
+0.0001 Tw
+( cubic \(periodic\) cell filled with 6903 water molecules and one chloride)Tj
+-11.6525 -1.1667 TD
+-0.0008 Tc
+0 Tw
+(ion, to maintain charge neutrality, i.e. a total of 21423 atoms in total at a density of 997.97)Tj
+0 -6.7294 6.7294 0 358.4182 69.8696 Tm
+0 Tc
+( )Tj
+0 -8.9725 8.9725 0 358.4182 68.1873 Tm
+(kg)Tj
+0 -6.7294 6.7294 0 358.4182 59.2148 Tm
+( )Tj
+0 -8.9725 8.9725 0 358.4182 57.5324 Tm
+(m)Tj
+0 -7.4771 7.4771 0 360.6614 50.5533 Tm
+(-3)Tj
+0 -8.9725 8.9725 0 358.4182 44.3249 Tm
+(.)Tj
+-38.926 -1 TD
+-0.0068 Tc
+0.0001 Tw
+(The force-field used to specify the interactions between atoms was based on CVFF. The values used)Tj
+0 -1.3333 TD
+0.0011 Tc
+0.0106 Tw
+(throughout for the Ewald summation were )Tj
+/TT7 1 Tf
+17.3251 0 TD
+0 Tc
+0 Tw
+<005f>Tj
+/TT2 1 Tf
+0.6309 0 TD
+0.0028 Tc
+(=0.29)Tj
+0 -6.7294 6.7294 0 337.4824 211.5898 Tm
+0 Tc
+( )Tj
+0 -8.9725 8.9725 0 337.4824 209.9074 Tm
+(≈)Tj
+0 -7.4771 7.4771 0 339.7256 203.3882 Tm
+0.0026 Tc
+(-1)Tj
+0 -8.9725 8.9725 0 337.4824 197.1208 Tm
+0.0004 Tc
+0.0039 Tw
+(, r)Tj
+0 -7.4771 7.4771 0 335.987 189.6003 Tm
+0 Tc
+0 Tw
+(c)Tj
+0 -8.9725 8.9725 0 337.4824 186.2816 Tm
+0.0028 Tc
+(=8.5)Tj
+0 -6.7294 6.7294 0 337.4824 169.9071 Tm
+0 Tc
+( )Tj
+0 -8.9725 8.9725 0 337.4824 168.2248 Tm
+0.0008 Tc
+0.0076 Tw
+[(≈ and K)]TJ
+0 -7.4771 7.4771 0 335.987 137.6396 Tm
+0.0035 Tc
+0 Tw
+(max)Tj
+0 -8.9725 8.9725 0 337.4824 124.688 Tm
+0.0008 Tc
+0.0084 Tw
+(=14 \(see [6]\). A real)Tj
+-29.9694 -1.4167 TD
+-0.0033 Tc
+0 Tw
+(space truncation of 8.5)Tj
+0 -6.7294 6.7294 0 324.7714 312.5559 Tm
+0 Tc
+( )Tj
+0 -8.9725 8.9725 0 324.7714 310.8736 Tm
+-0.0036 Tc
+(≈ allows the system to be decomposed into a maximum of 3)Tj
+/TT8 1 Tf
+23.9898 0 TD
+0 Tc
+(◊)Tj
+/TT2 1 Tf
+0.5442 0 TD
+(3)Tj
+/TT8 1 Tf
+0.4958 0 TD
+(◊)Tj
+/TT2 1 Tf
+0.5442 0 TD
+-0.0057 Tc
+(3=27)Tj
+-34.7928 -1.0833 TD
+-0.0089 Tc
+(domains each of ~20)Tj
+0 -6.7294 6.7294 0 315.0512 320.2402 Tm
+0 Tc
+( )Tj
+0 -8.9725 8.9725 0 315.0512 318.5578 Tm
+-0.0086 Tc
+(≈ side length and each containing the minimum number of link-cells allowed by)Tj
+-8.3623 -1 TD
+-0.0034 Tc
+(the code, )Tj
+/TT6 1 Tf
+3.8252 0 TD
+-0.0027 Tc
+(i.e.)Tj
+/TT2 1 Tf
+1.211 0 TD
+-0.0035 Tc
+( 2 per dimension each with a length greater than r)Tj
+0 -7.4771 7.4771 0 304.5833 172.0812 Tm
+0 Tc
+(c)Tj
+0 -8.9725 8.9725 0 306.0787 168.7625 Tm
+-0.0034 Tc
+( plus the shell-width \(1.5)Tj
+0 -6.7294 6.7294 0 306.0787 80.093 Tm
+0 Tc
+( )Tj
+0 -8.9725 8.9725 0 306.0787 78.4107 Tm
+-0.0041 Tc
+(≈\) used in)Tj
+-35.1271 -1.1667 TD
+-0.0081 Tc
+(the creation of the neighbour table. Rigid bond constraints were satisfied to a )Tj
+/TT6 1 Tf
+30.4002 0 TD
+(relative)Tj
+/TT2 1 Tf
+2.9902 0 TD
+( tolerance, 10)Tj
+5.3009 0.25 TD
+0 Tc
+(-)Tj
+0 -7.4771 7.4771 0 297.8539 43.5053 Tm
+(5)Tj
+0 -8.9725 8.9725 0 295.6108 39.8445 Tm
+(.)Tj
+-39.4254 -1 TD
+-0.0077 Tc
+(The benchmark itself consisted of performing 100 integration steps of length 1 fs on a configuration)Tj
+T*
+-0.0091 Tc
+(previously equilibrated at a temperature of ~298 K; further details can be found in [10]. The mean)Tj
+T*
+-0.0063 Tc
+0.0001 Tw
+(CPU times per step and relative speed-ups as a function of the number of processors are given in)Tj
+T*
+-0.0038 Tc
+0 Tw
+(table 1.)Tj
+/TT4 1 Tf
+8.75 -2.5833 TD
+0.0262 Tc
+0.2613 Tw
+[(SGi Origin 2000)-3306.2(IBM )]TJ
+13.7815 0 TD
+0.02 Tc
+0 Tw
+[(SP2)-4646(CRAY )]TJ
+9.7693 0 TD
+0.0163 Tc
+(T3E)Tj
+ET
+1 i 
+243.271 323.304 0.748 -0.748 re
+f
+243.271 323.304 0.748 -0.748 re
+f
+243.271 322.556 0.748 -84.491 re
+f
+243.271 238.065 0.748 -0.748 re
+f
+243.271 237.318 0.748 -83.743 re
+f
+243.271 153.574 0.748 -0.748 re
+f
+243.271 152.827 0.748 -83.743 re
+f
+243.271 69.083 0.748 -0.748 re
+f
+243.271 69.083 0.748 -0.748 re
+f
+234.299 323.304 8.972 -0.748 re
+f
+234.299 238.065 8.972 -0.748 re
+f
+234.299 153.574 8.972 -0.748 re
+f
+234.299 69.083 8.972 -0.748 re
+f
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 226.8216 355.4556 Tm
+0.0075 Tc
+0.0747 Tw
+(No. of)Tj
+0.3333 -1 TD
+0.037 Tc
+0 Tw
+(PEs.)Tj
+T*
+0.0082 Tc
+(\(N)Tj
+1.0715 -0.1667 TD
+0 Tc
+(p)Tj
+0.5078 0.1667 TD
+(\))Tj
+2.1707 2 TD
+-0.0079 Tc
+(CPU time)Tj
+-0.0833 -1 TD
+-0.0054 Tc
+(per step /s)Tj
+/TT8 1 Tf
+1.25 -1.3333 TD
+0 Tc
+(\()Tj
+/TT7 1 Tf
+0.3279 0 TD
+<006f>Tj
+/TT2 1 Tf
+0.4339 -0.1667 TD
+(p)Tj
+0.4934 0.1667 TD
+(\))Tj
+2.2448 2.3333 TD
+(Speed-Up)Tj
+/TT7 1 Tf
+1 -1.3333 TD
+<006f>Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 213.3629 264.1727 Tm
+(1)Tj
+0 -8.9725 8.9725 0 213.3629 260.5651 Tm
+(/)Tj
+/TT7 1 Tf
+0.2681 0.1667 TD
+<006f>Tj
+/TT2 1 Tf
+0.4236 -0.1667 TD
+(p)Tj
+2.2326 1.5 TD
+-0.0079 Tc
+(CPU time)Tj
+0 -1 TD
+-0.0054 Tc
+(per step /s)Tj
+/TT8 1 Tf
+1.1667 -1.3333 TD
+0 Tc
+(\()Tj
+/TT7 1 Tf
+0.3279 0 TD
+<006f>Tj
+/TT2 1 Tf
+0.4339 -0.1667 TD
+(p)Tj
+0.4934 0.1667 TD
+(\))Tj
+2.2448 2.3333 TD
+(Speed-Up)Tj
+/TT8 1 Tf
+0.5 -1.3333 TD
+(2)Tj
+/TT7 1 Tf
+0.4887 0 TD
+-0.0113 Tc
+<009b006f>Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 213.3629 175.363 Tm
+0 Tc
+(2)Tj
+0 -8.9725 8.9725 0 213.3629 171.7126 Tm
+(/)Tj
+/TT7 1 Tf
+0.2712 0.1667 TD
+<006f>Tj
+/TT2 1 Tf
+0.4286 -0.1667 TD
+(p)Tj
+1.8217 1.5 TD
+-0.0079 Tc
+(CPU time)Tj
+-0.0833 -1 TD
+-0.0054 Tc
+(per step /s)Tj
+/TT8 1 Tf
+1.25 -1.3333 TD
+0 Tc
+(\()Tj
+/TT7 1 Tf
+0.3279 0 TD
+<006f>Tj
+/TT2 1 Tf
+0.4339 -0.1667 TD
+(p)Tj
+0.4934 0.1667 TD
+(\))Tj
+2.2448 2.3333 TD
+(Speed-Up)Tj
+/TT8 1 Tf
+0 -1.3333 TD
+-0.0088 Tc
+(12)Tj
+/TT7 1 Tf
+0.9823 0 TD
+<009b006f>Tj
+/TT2 1 Tf
+0 -7.4771 7.4771 0 213.3629 90.1362 Tm
+-0.0091 Tc
+(12)Tj
+0 -8.9725 8.9725 0 213.3629 82.7952 Tm
+0 Tc
+(/)Tj
+/TT7 1 Tf
+0.2727 0.1667 TD
+<006f>Tj
+/TT2 1 Tf
+0.431 -0.1667 TD
+(p)Tj
+ET
+233.551 365.176 0.748 -0.748 re
+f
+233.551 365.176 0.748 -0.748 re
+f
+233.551 364.428 0.748 -41.124 re
+f
+233.551 323.304 0.748 -0.748 re
+f
+233.551 322.556 0.748 -41.872 re
+f
+233.551 280.685 0.748 -0.748 re
+f
+233.551 279.937 0.748 -41.872 re
+f
+233.551 238.065 0.748 -0.748 re
+f
+233.551 237.318 0.748 -41.124 re
+f
+233.551 196.194 0.748 -0.748 re
+f
+233.551 195.446 0.748 -41.872 re
+f
+233.551 153.574 0.748 -0.748 re
+f
+233.551 152.827 0.748 -41.872 re
+f
+233.551 110.955 0.748 -0.748 re
+f
+233.551 110.207 0.748 -41.124 re
+f
+233.551 69.083 0.748 -0.748 re
+f
+202.895 365.176 30.656 -0.748 re
+f
+202.895 323.304 30.656 -0.748 re
+f
+202.895 280.685 30.656 -0.748 re
+f
+202.895 238.065 30.656 -0.748 re
+f
+202.895 196.194 30.656 -0.748 re
+f
+202.895 153.574 30.656 -0.748 re
+f
+202.895 110.955 30.656 -0.748 re
+f
+202.895 69.083 30.656 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 195.4179 345.7354 Tm
+0.0208 Tc
+[(1)-3229.2(24.20)-3312.5(1)-4312.5(-)-4312.9(-)-4396.2(-)-4396.2(-)]TJ
+ET
+202.895 365.176 m
+202.895 364.428 l
+202.147 364.428 l
+202.147 365.176 l
+202.895 365.176 l
+f
+202.147 364.428 0.748 -41.124 re
+f
+202.895 323.304 m
+202.895 322.556 l
+202.147 322.556 l
+202.147 323.304 l
+202.895 323.304 l
+f
+202.147 322.556 0.748 -41.872 re
+f
+202.895 280.685 m
+202.895 279.937 l
+202.147 279.937 l
+202.147 280.685 l
+202.895 280.685 l
+f
+202.147 279.937 0.748 -41.872 re
+f
+202.895 238.065 m
+202.895 237.318 l
+202.147 237.318 l
+202.147 238.065 l
+202.895 238.065 l
+f
+202.147 237.318 0.748 -41.124 re
+f
+202.895 196.194 m
+202.895 195.446 l
+202.147 195.446 l
+202.147 196.194 l
+202.895 196.194 l
+f
+202.147 195.446 0.748 -41.872 re
+f
+202.895 153.574 m
+202.895 152.827 l
+202.147 152.827 l
+202.147 153.574 l
+202.895 153.574 l
+f
+202.147 152.827 0.748 -41.872 re
+f
+202.895 110.955 m
+202.895 110.207 l
+202.147 110.207 l
+202.147 110.955 l
+202.895 110.955 l
+f
+202.147 110.207 0.748 -41.124 re
+f
+202.895 69.083 m
+202.895 68.336 l
+202.147 68.336 l
+202.147 69.083 l
+202.895 69.083 l
+f
+193.175 365.176 8.973 -0.748 re
+f
+193.175 323.304 8.973 -0.748 re
+f
+193.175 280.685 8.973 -0.748 re
+f
+193.175 238.065 8.973 -0.748 re
+f
+193.175 196.194 8.973 -0.748 re
+f
+193.175 153.574 8.973 -0.748 re
+f
+193.175 110.955 8.973 -0.748 re
+f
+193.175 69.083 8.973 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 185.6977 345.7354 Tm
+[(2)-3229.2(12.19)-2895.9(2)-20.9(.)-20.9(0)-2895.9(14.64)-3229.2(2)-4312.5(-)-4396.2(-)]TJ
+ET
+193.175 365.176 m
+193.175 364.428 l
+192.427 364.428 l
+192.427 365.176 l
+193.175 365.176 l
+f
+192.427 364.428 0.748 -41.124 re
+f
+193.175 323.304 m
+193.175 322.556 l
+192.427 322.556 l
+192.427 323.304 l
+193.175 323.304 l
+f
+192.427 322.556 0.748 -41.872 re
+f
+193.175 280.685 m
+193.175 279.937 l
+192.427 279.937 l
+192.427 280.685 l
+193.175 280.685 l
+f
+192.427 279.937 0.748 -41.872 re
+f
+193.175 238.065 m
+193.175 237.318 l
+192.427 237.318 l
+192.427 238.065 l
+193.175 238.065 l
+f
+192.427 237.318 0.748 -41.124 re
+f
+193.175 196.194 m
+193.175 195.446 l
+192.427 195.446 l
+192.427 196.194 l
+193.175 196.194 l
+f
+192.427 195.446 0.748 -41.872 re
+f
+193.175 153.574 m
+193.175 152.827 l
+192.427 152.827 l
+192.427 153.574 l
+193.175 153.574 l
+f
+192.427 152.827 0.748 -41.872 re
+f
+193.175 110.955 m
+193.175 110.207 l
+192.427 110.207 l
+192.427 110.955 l
+193.175 110.955 l
+f
+192.427 110.207 0.748 -41.124 re
+f
+193.175 69.083 m
+193.175 68.336 l
+192.427 68.336 l
+192.427 69.083 l
+193.175 69.083 l
+f
+183.455 365.176 8.973 -0.748 re
+f
+183.455 323.304 8.973 -0.748 re
+f
+183.455 280.685 8.973 -0.748 re
+f
+183.455 238.065 8.973 -0.748 re
+f
+183.455 196.194 8.973 -0.748 re
+f
+183.455 153.574 8.973 -0.748 re
+f
+183.455 110.955 8.973 -0.748 re
+f
+183.455 69.083 8.973 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 175.9775 345.7354 Tm
+0.0278 Tc
+[(4)-3472.2(4.98)-3138.9(4)-13.9(.)-13.9(9)-3138.9(7.66)-3055.6(3)-13.9(.)-13.9(8)-3888.9(-)-4389.2(-)]TJ
+ET
+183.455 365.176 m
+183.455 364.428 l
+182.707 364.428 l
+182.707 365.176 l
+183.455 365.176 l
+f
+182.707 364.428 0.748 -41.124 re
+f
+183.455 323.304 m
+183.455 322.556 l
+182.707 322.556 l
+182.707 323.304 l
+183.455 323.304 l
+f
+182.707 322.556 0.748 -41.872 re
+f
+183.455 280.685 m
+183.455 279.937 l
+182.707 279.937 l
+182.707 280.685 l
+183.455 280.685 l
+f
+182.707 279.937 0.748 -41.872 re
+f
+183.455 238.065 m
+183.455 237.318 l
+182.707 237.318 l
+182.707 238.065 l
+183.455 238.065 l
+f
+182.707 237.318 0.748 -41.124 re
+f
+183.455 196.194 m
+183.455 195.446 l
+182.707 195.446 l
+182.707 196.194 l
+183.455 196.194 l
+f
+182.707 195.446 0.748 -41.872 re
+f
+183.455 153.574 m
+183.455 152.827 l
+182.707 152.827 l
+182.707 153.574 l
+183.455 153.574 l
+f
+182.707 152.827 0.748 -41.872 re
+f
+183.455 110.955 m
+183.455 110.207 l
+182.707 110.207 l
+182.707 110.955 l
+183.455 110.955 l
+f
+182.707 110.207 0.748 -41.124 re
+f
+183.455 69.083 m
+183.455 68.336 l
+182.707 68.336 l
+182.707 69.083 l
+183.455 69.083 l
+f
+173.734 365.176 8.973 -0.748 re
+f
+173.734 323.304 8.973 -0.748 re
+f
+173.734 280.685 8.973 -0.748 re
+f
+173.734 238.065 8.973 -0.748 re
+f
+173.734 196.194 8.973 -0.748 re
+f
+173.734 153.574 8.973 -0.748 re
+f
+173.734 110.955 8.973 -0.748 re
+f
+173.734 69.083 8.973 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 166.2573 345.7354 Tm
+[(8)-3472.2(2.51)-3138.9(9)-13.9(.)-13.9(6)-3138.9(4.27)-3055.6(6)-13.9(.)-13.9(9)-3888.9(-)-4389.2(-)]TJ
+ET
+173.734 365.176 m
+173.734 364.428 l
+172.987 364.428 l
+172.987 365.176 l
+173.734 365.176 l
+f
+172.987 364.428 0.748 -41.124 re
+f
+173.734 323.304 m
+173.734 322.556 l
+172.987 322.556 l
+172.987 323.304 l
+173.734 323.304 l
+f
+172.987 322.556 0.748 -41.872 re
+f
+173.734 280.685 m
+173.734 279.937 l
+172.987 279.937 l
+172.987 280.685 l
+173.734 280.685 l
+f
+172.987 279.937 0.748 -41.872 re
+f
+173.734 238.065 m
+173.734 237.318 l
+172.987 237.318 l
+172.987 238.065 l
+173.734 238.065 l
+f
+172.987 237.318 0.748 -41.124 re
+f
+173.734 196.194 m
+173.734 195.446 l
+172.987 195.446 l
+172.987 196.194 l
+173.734 196.194 l
+f
+172.987 195.446 0.748 -41.872 re
+f
+173.734 153.574 m
+173.734 152.827 l
+172.987 152.827 l
+172.987 153.574 l
+173.734 153.574 l
+f
+172.987 152.827 0.748 -41.872 re
+f
+173.734 110.955 m
+173.734 110.207 l
+172.987 110.207 l
+172.987 110.955 l
+173.734 110.955 l
+f
+172.987 110.207 0.748 -41.124 re
+f
+173.734 69.083 m
+173.734 68.336 l
+172.987 68.336 l
+172.987 69.083 l
+173.734 69.083 l
+f
+164.014 365.176 8.973 -0.748 re
+f
+164.014 323.304 8.973 -0.748 re
+f
+164.014 280.685 8.973 -0.748 re
+f
+164.014 238.065 8.973 -0.748 re
+f
+164.014 196.194 8.973 -0.748 re
+f
+164.014 153.574 8.973 -0.748 re
+f
+164.014 110.955 8.973 -0.748 re
+f
+164.014 69.083 8.973 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 156.5371 347.9785 Tm
+[(1)27.8(2)-3222.2(1.80)-2888.9(13.4)-2889(3.46)-3055.6(8)-13.9(.)-13.9(5)-3138.9(4.36)-3305.6(1)27.8(2)]TJ
+ET
+164.014 365.176 m
+164.014 364.428 l
+163.266 364.428 l
+163.266 365.176 l
+164.014 365.176 l
+f
+163.266 364.428 0.748 -41.124 re
+f
+164.014 323.304 m
+164.014 322.556 l
+163.266 322.556 l
+163.266 323.304 l
+164.014 323.304 l
+f
+163.266 322.556 0.748 -41.872 re
+f
+164.014 280.685 m
+164.014 279.937 l
+163.266 279.937 l
+163.266 280.685 l
+164.014 280.685 l
+f
+163.266 279.937 0.748 -41.872 re
+f
+164.014 238.065 m
+164.014 237.318 l
+163.266 237.318 l
+163.266 238.065 l
+164.014 238.065 l
+f
+163.266 237.318 0.748 -41.124 re
+f
+164.014 196.194 m
+164.014 195.446 l
+163.266 195.446 l
+163.266 196.194 l
+164.014 196.194 l
+f
+163.266 195.446 0.748 -41.872 re
+f
+164.014 153.574 m
+164.014 152.827 l
+163.266 152.827 l
+163.266 153.574 l
+164.014 153.574 l
+f
+163.266 152.827 0.748 -41.872 re
+f
+164.014 110.955 m
+164.014 110.207 l
+163.266 110.207 l
+163.266 110.955 l
+164.014 110.955 l
+f
+163.266 110.207 0.748 -41.124 re
+f
+164.014 69.083 m
+164.014 68.336 l
+163.266 68.336 l
+163.266 69.083 l
+164.014 69.083 l
+f
+154.294 365.176 8.973 -0.748 re
+f
+154.294 323.304 8.973 -0.748 re
+f
+154.294 280.685 8.973 -0.748 re
+f
+154.294 238.065 8.973 -0.748 re
+f
+154.294 196.194 8.973 -0.748 re
+f
+154.294 153.574 8.973 -0.748 re
+f
+154.294 110.955 8.973 -0.748 re
+f
+154.294 69.083 8.973 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 146.8169 347.9785 Tm
+[(1)27.8(8)-3222.2(1.32)-2888.9(18.3)-2889(2.60)-2805.6(11.3)-2888.9(2.87)-2888.9(18.2)]TJ
+ET
+154.294 365.176 m
+154.294 364.428 l
+153.546 364.428 l
+153.546 365.176 l
+154.294 365.176 l
+f
+153.546 364.428 0.748 -41.124 re
+f
+154.294 323.304 m
+154.294 322.556 l
+153.546 322.556 l
+153.546 323.304 l
+154.294 323.304 l
+f
+153.546 322.556 0.748 -41.872 re
+f
+154.294 280.685 m
+154.294 279.937 l
+153.546 279.937 l
+153.546 280.685 l
+154.294 280.685 l
+f
+153.546 279.937 0.748 -41.872 re
+f
+154.294 238.065 m
+154.294 237.318 l
+153.546 237.318 l
+153.546 238.065 l
+154.294 238.065 l
+f
+153.546 237.318 0.748 -41.124 re
+f
+154.294 196.194 m
+154.294 195.446 l
+153.546 195.446 l
+153.546 196.194 l
+154.294 196.194 l
+f
+153.546 195.446 0.748 -41.872 re
+f
+154.294 153.574 m
+154.294 152.827 l
+153.546 152.827 l
+153.546 153.574 l
+154.294 153.574 l
+f
+153.546 152.827 0.748 -41.872 re
+f
+154.294 110.955 m
+154.294 110.207 l
+153.546 110.207 l
+153.546 110.955 l
+154.294 110.955 l
+f
+153.546 110.207 0.748 -41.124 re
+f
+154.294 69.083 m
+154.294 68.336 l
+153.546 68.336 l
+153.546 69.083 l
+154.294 69.083 l
+f
+144.574 365.176 8.973 -0.748 re
+f
+144.574 323.304 8.973 -0.748 re
+f
+144.574 280.685 8.973 -0.748 re
+f
+144.574 238.065 8.973 -0.748 re
+f
+144.574 196.194 8.973 -0.748 re
+f
+144.574 153.574 8.973 -0.748 re
+f
+144.574 110.955 8.973 -0.748 re
+f
+144.574 69.083 8.973 -0.748 re
+f
+BT
+0 -8.9725 8.9725 0 137.0967 347.9785 Tm
+[(2)27.8(7)-3222.2(1.02)-2888.9(23.8)-2889(2.48)-2805.6(11.8)-2888.9(1.75)-2888.9(29.9)]TJ
+ET
+144.574 365.176 m
+144.574 364.428 l
+143.826 364.428 l
+143.826 365.176 l
+144.574 365.176 l
+f
+143.826 364.428 0.748 -41.124 re
+f
+144.574 323.304 m
+144.574 322.556 l
+143.826 322.556 l
+143.826 323.304 l
+144.574 323.304 l
+f
+143.826 322.556 0.748 -41.872 re
+f
+144.574 280.685 m
+144.574 279.937 l
+143.826 279.937 l
+143.826 280.685 l
+144.574 280.685 l
+f
+143.826 279.937 0.748 -41.872 re
+f
+144.574 238.065 m
+144.574 237.318 l
+143.826 237.318 l
+143.826 238.065 l
+144.574 238.065 l
+f
+143.826 237.318 0.748 -41.124 re
+f
+144.574 196.194 m
+144.574 195.446 l
+143.826 195.446 l
+143.826 196.194 l
+144.574 196.194 l
+f
+143.826 195.446 0.748 -41.872 re
+f
+144.574 153.574 m
+144.574 152.827 l
+143.826 152.827 l
+143.826 153.574 l
+144.574 153.574 l
+f
+143.826 152.827 0.748 -41.872 re
+f
+144.574 110.955 m
+144.574 110.207 l
+143.826 110.207 l
+143.826 110.955 l
+144.574 110.955 l
+f
+143.826 110.207 0.748 -41.124 re
+f
+144.574 69.083 m
+144.574 68.336 l
+143.826 68.336 l
+143.826 69.083 l
+144.574 69.083 l
+f
+134.854 365.176 8.972 -0.748 re
+f
+134.106 365.176 0.748 -0.748 re
+f
+134.106 365.176 0.748 -0.748 re
+f
+134.106 364.428 0.748 -41.124 re
+f
+134.854 323.304 8.972 -0.748 re
+f
+134.106 323.304 0.748 -0.748 re
+f
+134.106 322.556 0.748 -41.872 re
+f
+134.854 280.685 8.972 -0.748 re
+f
+134.106 280.685 0.748 -0.748 re
+f
+134.106 279.937 0.748 -41.872 re
+f
+134.854 238.065 8.972 -0.748 re
+f
+134.106 238.065 0.748 -0.748 re
+f
+134.106 237.318 0.748 -41.124 re
+f
+134.854 196.194 8.972 -0.748 re
+f
+134.106 196.194 0.748 -0.748 re
+f
+134.106 195.446 0.748 -41.872 re
+f
+134.854 153.574 8.972 -0.748 re
+f
+134.106 153.574 0.748 -0.748 re
+f
+134.106 152.827 0.748 -41.872 re
+f
+134.854 110.955 8.972 -0.748 re
+f
+134.106 110.955 0.748 -0.748 re
+f
+134.106 110.207 0.748 -41.124 re
+f
+134.854 69.083 8.972 -0.748 re
+f
+134.106 69.083 0.748 -0.748 re
+f
+134.106 69.083 0.748 -0.748 re
+f
+BT
+/TT4 1 Tf
+0 -8.9725 8.9725 0 118.404 393.5887 Tm
+-0.0052 Tc
+(Table 1.)Tj
+/TT2 1 Tf
+3.4035 0 TD
+-0.0048 Tc
+( The results for the echistatin in water benchmark for the general purpose parallel MD)Tj
+-3.4035 -1 TD
+-0.0069 Tc
+(program )Tj
+/TT6 1 Tf
+3.5824 0 TD
+-0.0083 Tc
+(ddgmq)Tj
+/TT2 1 Tf
+2.6805 0 TD
+-0.0061 Tc
+( running on three different, and heavily utilised, machines:-)Tj
+-6.2629 -1 TD
+0 Tc
+0.0002 Tw
+(SGi Origin 2000: INRIA, Nancy \(64 PEs, MIPS R10000, 195 MHz, 8 GByte RAM\))Tj
+T*
+-0.0012 Tc
+0 Tw
+(IBM SP2: CNUSC, Montpellier \(127 PEs, P2SC, 256 Mbyte RAM per PE\))Tj
+T*
+-0.0064 Tc
+(CRAY T3E: IDRIS, Orsay \(256 PEs, DEC Alpha EV5, 300 MHz, 128 Mbyte RAM per PE\))Tj
+0 -2 TD
+(The benchmark is too large to run on one processor of the IBM SP2 or even 8 on the CRAY T3E, a)Tj
+0 -1 TD
+-0.0112 Tc
+(problem related to the distributed memory of these machines compared to the physically)Tj
+T*
+-0.0069 Tc
+(distributed/logically shared memory of the SGi Origin 2000, so speed-ups for these machines are)Tj
+ET
+endstream
+endobj
+23 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT6 6 0 R
+/TT7 7 0 R
+/TT8 13 0 R
+/TT10 17 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+25 0 obj
+<<
+/Length 15893
+>>
+stream
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 12.2294 632.3875 Tm
+0 g
+/GS1 gs
+0 Tc
+0 Tw
+(-9-)Tj
+-19.3333 60.1667 TD
+-0.0082 Tc
+(based on the time for the minimum number of processors usable. As all the timings were obtained)Tj
+0 -1 TD
+-0.0088 Tc
+(with the machines in multi-user mode and subject to varying loads not too many conclusions can be)Tj
+T*
+-0.0049 Tc
+(drawn. The speed-ups on the SGi and Cray machines hold up well but the code performs less well)Tj
+T*
+0.0027 Tc
+0.0277 Tw
+[(on the SP2.)]TJ
+/TT4 1 Tf
+0 -10.4679 10.4679 0 502.7259 805.8557 Tm
+0.0556 Tc
+0 Tw
+[(5)-123(.)-1587.3(Discussion)]TJ
+0 -8.9725 8.9725 0 484.7809 792.397 Tm
+0.0173 Tc
+0.1726 Tw
+[(5)-149.4(.)-149.4(1)-2899.4(Ewald vs P)]TJ
+0 -7.4771 7.4771 0 487.024 704.996 Tm
+0 Tc
+0 Tw
+(3)Tj
+0 -8.9725 8.9725 0 484.7809 700.8478 Tm
+(M)Tj
+/TT2 1 Tf
+-11.7033 -1 TD
+-0.0095 Tc
+(It is well known that the Ewald method doesnít scale linearly with system size and many attempts)Tj
+T*
+-0.0088 Tc
+(have been made to overcome this using other techniques and current opinion [39] favours particle-)Tj
+0 -1.1667 TD
+-0.0075 Tc
+(particle particle-mesh \(P)Tj
+0 -7.4771 7.4771 0 458.6111 719.3464 Tm
+0 Tc
+(3)Tj
+0 -8.9725 8.9725 0 456.368 715.679 Tm
+-0.0078 Tc
+(M\) type approaches [24]. For large systems on scalar machines there is no)Tj
+-10.0503 -1 TD
+-0.0058 Tc
+0.0001 Tw
+(doubt such approaches have a big advantage, however, within DD this is not quite so clear. It has to)Tj
+T*
+-0.01 Tc
+0 Tw
+(be remembered that the real space pair search has to be carried out in any case for the short range)Tj
+T*
+-0.0089 Tc
+(potentials. The best that can be achieved then is to reduce the CPU time for the reciprocal space sum,)Tj
+0 -1.1667 TD
+-0.0081 Tc
+(or the particle-mesh part of P)Tj
+0 -7.4771 7.4771 0 421.2257 703.1392 Tm
+0 Tc
+(3)Tj
+0 -8.9725 8.9725 0 418.9826 699.4784 Tm
+-0.0083 Tc
+(M, down to an insignificant fraction of the total. Traditional FFT)Tj
+-11.8559 -1.1667 TD
+-0.011 Tc
+(approaches to solving this problem using P)Tj
+0 -7.4771 7.4771 0 410.7578 655.4883 Tm
+0 Tc
+(3)Tj
+0 -8.9725 8.9725 0 408.5147 651.8507 Tm
+-0.0109 Tc
+(M are not easily adapted to DD. Alternative iterative)Tj
+-17.1641 -1 TD
+-0.0107 Tc
+(routes [3] in principal get over the mapping onto DD but donít deliver the same accuracy as Ewald at)Tj
+T*
+-0.0058 Tc
+(any less cost. In any case, for the size of systems that are feasible on the present generation of)Tj
+T*
+-0.0096 Tc
+(machines the cost of the reciprocal space part of the Ewald sum is about the same as for the real space)Tj
+0 -1.1667 TD
+-0.0062 Tc
+(sum so at best a factor of two speed-up would be obtained. Given this and the fact that P)Tj
+0 -7.4771 7.4771 0 373.3724 493.5796 Tm
+0 Tc
+(3)Tj
+0 -8.9725 8.9725 0 371.1293 489.8994 Tm
+(M)Tj
+-35.2139 -1 TD
+-0.0086 Tc
+(approaches are, unlike Ewald, )Tj
+/TT6 1 Tf
+12.015 0 TD
+-0.0078 Tc
+(intrinsically)Tj
+/TT2 1 Tf
+4.7312 0 TD
+-0.0087 Tc
+( approximate methods, often requiring the optimisation of)Tj
+-16.7461 -1 TD
+(many tuning parameters, we prefer to continue using our current methods to evaluate Coulombic)Tj
+T*
+0.0277 Tc
+(sums.)Tj
+/TT4 1 Tf
+1.5 -1.5 TD
+0.0274 Tc
+0.2738 Tw
+[(5)-139.3(.)-139.3(2)-2889.3(Constraints vs continuous potentials)]TJ
+/TT2 1 Tf
+-1.5 -1 TD
+-0.0077 Tc
+0 Tw
+(For systems where Coulombic interactions have to be taken into account, such as the benchmark)Tj
+T*
+-0.0068 Tc
+0.0001 Tw
+(system above, the overall cost of the parallel S)Tj
+0 -7.4771 7.4771 0 312.808 641.5755 Tm
+-0.012 Tc
+0 Tw
+(HAKE)Tj
+0 -8.9725 8.9725 0 312.808 621.168 Tm
+-0.0067 Tc
+( algorithm is < 2%, i.e. the calculation is)Tj
+-20.5838 -1 TD
+-0.007 Tc
+(dominated by the cost of the non-bonded pair interactions. In other systems where Coulombic)Tj
+T*
+-0.0078 Tc
+0.0001 Tw
+(potentials are absent and the range of the non-bonded potential is very short [9] the cost rises to)Tj
+T*
+-0.0066 Tc
+0 Tw
+(~20%. So in either case the CPU cost of using rigid constraints is easily justified by the increase in)Tj
+T*
+-0.0097 Tc
+(time step and the removal of equipartition problems.)Tj
+/TT4 1 Tf
+1.5 -1.5 TD
+0.0229 Tc
+0.2289 Tw
+[(5)-143.8(.)-143.8(3)-2893.8(Load balancing)]TJ
+/TT2 1 Tf
+-1.5 -1 TD
+-0.0087 Tc
+0 Tw
+(In simulations of pure liquids there is usually a homogeneity in the density which means that there is)Tj
+T*
+(a natural load balancing; each processor receives roughly equal numbers of particles. In multiphase or)Tj
+T*
+-0.0105 Tc
+(interfacial systems there is likely to be a variation in the number density of sites within the simulation)Tj
+T*
+-0.0107 Tc
+(box and perhaps also a variation of the complexity of molecules also; leading to imbalances in the)Tj
+T*
+-0.0036 Tc
+(numbers of pairs, bends, torsions etc. in the lists for each PE. In this situation there will be benefits)Tj
+T*
+-0.0065 Tc
+(to be gained from balancing the load on the processors.)Tj
+/TT4 1 Tf
+1.5 -1.5 TD
+0.023 Tc
+0.2297 Tw
+[(5)-143.7(.)-143.7(4)-2893.7(Increasing the number of processors)]TJ
+/TT2 1 Tf
+-1.5 -1 TD
+-0.0123 Tc
+0.0001 Tw
+(One of the restrictions of the current implementation of DD is that the truncation range of the)Tj
+T*
+-0.0105 Tc
+0 Tw
+(interaction potential determines the smallest domain into which the system can be decomposed. This)Tj
+T*
+-0.0091 Tc
+(is necessary at present to ensure that only local communications with neighbouring domains are)Tj
+T*
+-0.0095 Tc
+(required to carry out the all-pair search. This places a restriction on the maximum number of)Tj
+T*
+-0.0075 Tc
+(processors that can be used. To subdivide the system into smaller domains whilst maintaining the)Tj
+T*
+-0.0101 Tc
+(same interaction truncation distance implies communications between non-neighbouring PEs. A)Tj
+T*
+-0.0115 Tc
+(method which accomplishes this indirectly by local communications alone has recently been)Tj
+T*
+-0.0094 Tc
+(described [35] and this may be a way to increase the efficacity of DD.)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 101.9544 805.8557 Tm
+0.0478 Tc
+(Acknowledgments)Tj
+/TT2 1 Tf
+0 -8.9725 8.9725 0 88.4956 805.8557 Tm
+-0.0082 Tc
+(We acknowledge the support of the Charles Hermite Centre in Nancy, the IDRIS centre in Orsay and)Tj
+T*
+-0.0088 Tc
+0.0001 Tw
+(the CNUSC centre in Montpellier for the provision of computer time on the various machines and for)Tj
+T*
+-0.0093 Tc
+0 Tw
+(the kind help of their technical staff.)Tj
+65.0312 -6.5 TD
+0 Tc
+(-10-)Tj
+/TT4 1 Tf
+0 -10.4679 10.4679 0 549.8315 393.5887 Tm
+0.0534 Tc
+(References)Tj
+/TT2 1 Tf
+0 -8.9725 8.9725 0 536.3728 393.5887 Tm
+0.0007 Tc
+0.0087 Tw
+[([1])-1833.3(Allen, M.P. and D.J. Tildesley, )]TJ
+/TT6 1 Tf
+15.7629 0 TD
+0.0012 Tc
+0.0118 Tw
+(Computer Simulation of Liquids)Tj
+/TT2 1 Tf
+12.9328 0 TD
+0.0011 Tc
+0.0107 Tw
+(, Clarendon Press, Oxford,)Tj
+-25.6957 -1 TD
+0.0208 Tc
+0 Tw
+(1987.)Tj
+-3 -1 TD
+-0.0051 Tc
+[([)-5.1(2)-5.1(])-1839.1(Beazley, D.M. and P.S. Lomdahl, "Message-passing multi-cell molecular dynamics on the)]TJ
+3 -1 TD
+-0.0012 Tc
+(Connection Machine 5", )Tj
+/TT6 1 Tf
+9.9903 0 TD
+(Parallel Computing)Tj
+/TT2 1 Tf
+7.9512 0 TD
+0 Tc
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+(20)Tj
+/TT2 1 Tf
+1 0 TD
+-0.0011 Tc
+(, 173-195, \(1994\).)Tj
+-22.4414 -1 TD
+0.0008 Tc
+0.0086 Tw
+[([3])-1833.2(Beckers, J.V.L., C.P. Lowe and S.W. de Leeuw, "An iterative PPPM method for simulating)]TJ
+3 -1 TD
+-0.0052 Tc
+0 Tw
+(Coulombic systems on distributed memory parallel computers", )Tj
+/TT6 1 Tf
+25.4727 0 TD
+-0.0054 Tc
+(Molecular Simulation)Tj
+/TT2 1 Tf
+8.6407 0 TD
+-0.0031 Tc
+(,  )Tj
+/TT4 1 Tf
+0.7407 0 TD
+-0.0062 Tc
+(20)Tj
+/TT2 1 Tf
+0.9875 0 TD
+0 Tc
+(,)Tj
+-35.8417 -1 TD
+0.0068 Tc
+0.0673 Tw
+[(369-383, \(1998\).)]TJ
+-3 -1 TD
+0.0014 Tc
+0.0141 Tw
+[([4])-1832.6(Berendsen, H.J.C., D. van der Spoel and R. van Drunen, "Gromacs - a Message-Passing)]TJ
+3 -1 TD
+-0.0052 Tc
+0 Tw
+(Parallel Molecular-Dynamics Implementation", )Tj
+/TT6 1 Tf
+19.0548 0 TD
+-0.0057 Tc
+(Computer Physics Communications)Tj
+/TT2 1 Tf
+14.1569 0 TD
+-0.0031 Tc
+(, )Tj
+/TT4 1 Tf
+0.4938 0 TD
+-0.0061 Tc
+(91)Tj
+/TT2 1 Tf
+0.9878 0 TD
+-0.0056 Tc
+(, 43-)Tj
+-34.6933 -1 TD
+0.0084 Tc
+0.0839 Tw
+(56, \(1995\).)Tj
+-3 -1 TD
+-0.0011 Tc
+-0.0003 Tw
+[([5])-1835.1(Brown, D., )]TJ
+/TT6 1 Tf
+7.6788 0 TD
+-0.0014 Tc
+0 Tw
+(A Summary of Research Activities)Tj
+/TT2 1 Tf
+13.5621 0 TD
+(, Habilitation ‡ Diriger des Recherches Thesis,)Tj
+-18.2408 -1 TD
+0.0017 Tc
+0.0169 Tw
+(Henri PoincarÈ, Nancy I, 1998.)Tj
+-3 -1 TD
+0.0003 Tc
+0.0044 Tw
+[([6])-1833.7(Brown, D., )]TJ
+/TT6 1 Tf
+7.7076 0 TD
+0.0005 Tc
+0.0047 Tw
+(The gmq User Manual Version 2)Tj
+/TT2 1 Tf
+13.1764 0 TD
+0.005 Tw
+(, 1998:)Tj
+-17.884 -1 TD
+-0.0048 Tc
+0 Tw
+(available at http://www.lctn.u-nancy.fr/Chercheurs/David.Brown)Tj
+-3 -1 TD
+-0.0017 Tc
+[([7])-1835.7(Brown, D., J.H.R. Clarke, M. Okuda and T. Yamazaki, "A Domain Decomposition Parallel-)]TJ
+3 -1 TD
+-0.0081 Tc
+(Processing Algorithm For Molecular- Dynamics Simulations Of Polymers", )Tj
+/TT6 1 Tf
+30.0814 0 TD
+-0.0107 Tc
+(Computer)Tj
+-30.0814 -1 TD
+0.0073 Tc
+0.0724 Tw
+(Physics Communications)Tj
+/TT2 1 Tf
+10.3144 0 TD
+0.0009 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5114 0 TD
+0.0115 Tc
+(83)Tj
+/TT2 1 Tf
+1.023 0 TD
+0.003 Tc
+0.0301 Tw
+(, 1-13, \(1994\); )Tj
+/TT6 1 Tf
+6.1651 0 TD
+0.0089 Tc
+0 Tw
+(ibid)Tj
+/TT2 1 Tf
+1.5913 0 TD
+0 Tc
+( )Tj
+/TT4 1 Tf
+0.2558 0 TD
+0.0115 Tc
+(86)Tj
+/TT2 1 Tf
+1.023 0 TD
+0.0037 Tc
+0.0371 Tw
+(, 312 \(1995\).)Tj
+-23.884 -1 TD
+-0.0002 Tc
+0 Tw
+[([8])-1834.2(Brown, D., J.H.R. Clarke, M. Okuda and T. Yamazaki, "A Domain Decomposition)]TJ
+3 -1 TD
+-0.0136 Tc
+(Parallelization Strategy For Molecular- Dynamics Simulations On Distributed Memory)Tj
+T*
+0.0025 Tc
+(Machines", )Tj
+/TT6 1 Tf
+4.8482 0 TD
+0.0031 Tc
+0.0306 Tw
+(Computer Physics Communications)Tj
+/TT2 1 Tf
+14.4893 0 TD
+0.0004 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5053 0 TD
+0.0054 Tc
+(74)Tj
+/TT2 1 Tf
+1.0108 0 TD
+0.0019 Tc
+0.0194 Tw
+(, 67-80, \(1993\).)Tj
+-23.8537 -1 TD
+-0.0011 Tc
+0 Tw
+[([9])-1835.1(Brown, D., J.H.R. Clarke, M. Okuda and T. Yamazaki, "A large scale molecular dynamics)]TJ
+3 -1 TD
+0.0018 Tc
+0.0184 Tw
+(study of chain configurations in the n=100 alkane liquid", )Tj
+/TT6 1 Tf
+23.6296 0 TD
+0.0021 Tc
+0.0205 Tw
+(J. Chem. Phys.)Tj
+/TT2 1 Tf
+6.0409 0 TD
+0.0005 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5058 0 TD
+0.0058 Tc
+(104)Tj
+/TT2 1 Tf
+1.5175 0 TD
+0.0028 Tc
+0.0283 Tw
+(, 2078-2082,)Tj
+-31.6938 -1 TD
+0.0141 Tc
+0 Tw
+(\(1996\).)Tj
+-3 -1 TD
+-0.0028 Tc
+-0.0001 Tw
+[([10])-1336.8(Brown, D., H. Minoux and B. Maigret, "A domain decomposition parallel processing)]TJ
+3 -1 TD
+-0.0065 Tc
+0 Tw
+(algorithm for molecular dynamics simulations of systems of arbitrary connectivity", )Tj
+/TT6 1 Tf
+33.3266 0 TD
+-0.0107 Tc
+(Comp.)Tj
+-33.3266 -1 TD
+0.015 Tc
+0.15 Tw
+(Phys. Comm.)Tj
+/TT2 1 Tf
+5.6202 0 TD
+0.0025 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5298 0 TD
+0.0297 Tc
+(103)Tj
+/TT2 1 Tf
+1.589 0 TD
+0.0117 Tc
+0.1163 Tw
+(, 170-186, \(1997\).)Tj
+-10.7389 -1 TD
+0 Tc
+0 Tw
+([11])Tj
+3 0 TD
+-0.0091 Tc
+(Bruge, F., "A Mixed Geometric-Systolic Approach to Parallel Molecular-Dynamics)Tj
+0 -1 TD
+0.0028 Tc
+(Simulations", )Tj
+/TT6 1 Tf
+5.7522 0 TD
+0.0033 Tc
+0.0322 Tw
+(Computer Physics Communications)Tj
+/TT2 1 Tf
+14.4978 0 TD
+0.0005 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5058 0 TD
+0.0058 Tc
+(90)Tj
+/TT2 1 Tf
+1.0115 0 TD
+0.0021 Tc
+0.0205 Tw
+(, 59-65, \(1995\).)Tj
+-24.7672 -1 TD
+-0.0023 Tc
+-0.0001 Tw
+[([12])-1336.3(Bruge, F. and S.L. Fornili, "Concurrent molecular dynamics simulation of spinodal phase)]TJ
+3 -1 TD
+0.0047 Tc
+0.0463 Tw
+(transition on transputer arrays", )Tj
+/TT6 1 Tf
+13.221 0 TD
+0.0059 Tc
+0.0589 Tw
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.4128 0 TD
+0.0011 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5133 0 TD
+0.0133 Tc
+(60)Tj
+/TT2 1 Tf
+1.0267 0 TD
+0.0047 Tc
+0.0476 Tw
+[(, 31-38, \(1990\).)]TJ
+-26.1736 -1 TD
+0.0006 Tc
+0.0062 Tw
+[([13])-1333.4(Chynoweth, S., U. Klomp and L. Scales, "Simulation of organic liquids using pseudo-)]TJ
+3 -1 TD
+0.0012 Tc
+0.0115 Tw
+(pairwise interatomic forces on a toroidal transputer array", )Tj
+/TT6 1 Tf
+23.8121 0 TD
+0.0015 Tc
+0.0152 Tw
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.2502 0 TD
+0 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+0.0034 Tc
+(62)Tj
+/TT2 1 Tf
+1.0068 0 TD
+0.0011 Tc
+0.0106 Tw
+(, 297-)Tj
+-33.5691 -1 TD
+0.008 Tc
+0.0799 Tw
+(306, \(1991\).)Tj
+-3 -1 TD
+-0.0027 Tc
+-0.0002 Tw
+[([14])-1336.7(Clark, T.W., R. van Hanxleden, J.A. McCammon and L.R. Scott. )]TJ
+/TT6 1 Tf
+29.179 0 TD
+-0.0029 Tc
+0 Tw
+(Parallelizing Molecular)Tj
+-26.179 -1 TD
+-0.0098 Tc
+(Dynamics using Spatial Decomposition)Tj
+/TT2 1 Tf
+15.4502 0 TD
+-0.0068 Tc
+(. in )Tj
+/TT6 1 Tf
+1.4937 0 TD
+-0.0103 Tc
+(Proc. Scalable High Performance Computing)Tj
+-16.9439 -1 TD
+-0.0017 Tc
+(Conference-94)Tj
+/TT2 1 Tf
+5.9207 0 TD
+-0.0016 Tc
+(. 1994. Knoxville, TN: IEEE Computer Society Press, Los Alamitos, CA.)Tj
+-8.9207 -1 TD
+-0.0049 Tc
+-0.0013 Tw
+[([15])-1338.9(Debolt, S.E. an)]TJ
+8.9888 0 TD
+-0.0063 Tc
+0.0001 Tw
+(d P.A. Kollman, "Ambercube Md, Parallelization Of Ambers Molecular-)Tj
+-5.9888 -1 TD
+-0.01 Tc
+0 Tw
+(Dynamics Module For Distributed-Memory Hypercube Computers", )Tj
+/TT6 1 Tf
+27.1546 0 TD
+-0.0106 Tc
+(Journal Of)Tj
+-27.1546 -1 TD
+0.0037 Tc
+0.0369 Tw
+(Computational Chemistry)Tj
+/TT2 1 Tf
+10.4826 0 TD
+0.0005 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5059 0 TD
+0.0059 Tc
+(14)Tj
+/TT2 1 Tf
+1.0118 0 TD
+0.0023 Tc
+0.023 Tw
+(, 312-329, \(1993\).)Tj
+-15.0003 -1 TD
+-0.0049 Tc
+-0.0009 Tw
+[([16])-1338.9(Eisenhauer, G. and K. )]TJ
+11.9522 0 TD
+-0.0058 Tc
+0 Tw
+(Schwan, "Design and Analysis Of a Parallel Molecular-Dynamics)Tj
+-8.9522 -1 TD
+-0.0063 Tc
+(Application", )Tj
+/TT6 1 Tf
+5.5407 0 TD
+-0.0068 Tc
+0.0001 Tw
+(Journal Of Parallel and Distributed Computing)Tj
+/TT2 1 Tf
+18.8349 0 TD
+-0.0039 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.4922 0 TD
+-0.0079 Tc
+(35)Tj
+/TT2 1 Tf
+0.9842 0 TD
+-0.0066 Tc
+(, 76-90, \(1996\).)Tj
+-28.852 -1 TD
+-0.005 Tc
+-0.0007 Tw
+[([17])-1339(Esselink, K. and P.A.J. Hilb)]TJ
+14.089 0 TD
+-0.0058 Tc
+0 Tw
+(ers, "Efficient Parallel Implementation Of Molecular-Dynamics)Tj
+-11.089 -1 TD
+-0.0077 Tc
+(On a Toroidal Network .2. Multiparticle Potentials", )Tj
+/TT6 1 Tf
+20.7753 0 TD
+-0.0083 Tc
+(Journal Of Computational Physics)Tj
+/TT2 1 Tf
+13.6493 0 TD
+0 Tc
+(,)Tj
+/TT4 1 Tf
+-34.4247 -1 TD
+0.0287 Tc
+(106)Tj
+/TT2 1 Tf
+1.586 0 TD
+0.0112 Tc
+0.1124 Tw
+(, 108-114, \(1993\).)Tj
+-4.586 -1 TD
+0 Tc
+0 Tw
+([18])Tj
+3 0 TD
+0.0107 Tc
+0.1064 Tw
+(Ewald, P.P., )Tj
+/TT6 1 Tf
+5.5185 0 TD
+0.0147 Tc
+0.1462 Tw
+(Ann. Phys.)Tj
+/TT2 1 Tf
+4.5976 0 TD
+0.0028 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.534 0 TD
+0.034 Tc
+(64)Tj
+/TT2 1 Tf
+1.068 0 TD
+0.0112 Tc
+0.1115 Tw
+(, 253, \(1921\).)Tj
+-14.7181 -1 TD
+-0.0035 Tc
+-0.0002 Tw
+[([19])-1337.5(Fincham, D., "Parallel computers and molecular simulation", )]TJ
+/TT6 1 Tf
+27.4519 0 TD
+-0.0039 Tc
+0 Tw
+(Molecular Simulation)Tj
+/TT2 1 Tf
+8.6707 0 TD
+-0.0023 Tc
+(, )Tj
+/TT4 1 Tf
+0.4955 0 TD
+0 Tc
+(1)Tj
+/TT2 1 Tf
+0.4955 0 TD
+-0.0039 Tc
+(, 1-45,)Tj
+-34.1136 -1 TD
+0.0141 Tc
+(\(1987\).)Tj
+-3 -1 TD
+0 Tc
+-0.0077 Tw
+[([20])-1334(F)7.8(r)7.7(e)7.8(n)7.8(k)7.7(e)7.7(l)7.8(,)7.8( D)7.8(.)7.7( a)7.8(n)7.7(d)7.8( B)7.7(.)7.7( S)7.7(m)7.8(i)7.7(t)7.8(,)7.7( )]TJ
+/TT6 1 Tf
+12.8336 0 TD
+-0.0083 Tc
+0 Tw
+(Understanding molecular simulation: from algorithms to)Tj
+-9.8336 -1 TD
+-0.0032 Tc
+(applications)Tj
+/TT2 1 Tf
+4.9063 0 TD
+-0.0033 Tc
+0.0001 Tw
+(, Academic Press Inc., San Diego, 1996.)Tj
+-7.9063 -1 TD
+-0.0028 Tc
+-0.0008 Tw
+[([21])-1336.8(Haile, J.M., )]TJ
+/TT6 1 Tf
+7.8973 0 TD
+-0.0042 Tc
+0 Tw
+(Molecular Dynamics Simulation: Elementary Methods)Tj
+/TT2 1 Tf
+21.676 0 TD
+(, John Wiley & Sons Ltd.,)Tj
+-26.5733 -1 TD
+0.0042 Tc
+0.0415 Tw
+(New York, 1992.)Tj
+-3 -1 TD
+0.0002 Tc
+0.0015 Tw
+[([22])-1333.8(Hammonds, K.D. and J.-P. Ryckaert, "On the convergence of the SHAKE algorithm",)]TJ
+/TT6 1 Tf
+3 -1 TD
+0.0117 Tc
+0.1165 Tw
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.6257 0 TD
+0.0022 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5263 0 TD
+0.0263 Tc
+(62)Tj
+/TT2 1 Tf
+1.0527 0 TD
+0.0103 Tc
+0.1031 Tw
+(, 336-351, \(1991\).)Tj
+-13.2046 -1 TD
+0 Tc
+0 Tw
+([23])Tj
+3 0 TD
+-0.0077 Tc
+(Hedman, F. and A. Laaksonen, "An Approach to Data-Parallel Molecular-Dynamics For)Tj
+0 -1 TD
+-0.0039 Tc
+(Liquids", )Tj
+/TT6 1 Tf
+3.9247 0 TD
+-0.0042 Tc
+(International Journal Of Modern Physics C Physics and Computers)Tj
+/TT2 1 Tf
+26.952 0 TD
+-0.0024 Tc
+(, )Tj
+/TT4 1 Tf
+0.4952 0 TD
+0 Tc
+(4)Tj
+/TT2 1 Tf
+0.4951 0 TD
+-0.0043 Tc
+(, 41-48,)Tj
+-31.8669 -1 TD
+0.0141 Tc
+(\(1993\).)Tj
+ET
+endstream
+endobj
+26 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT6 6 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+28 0 obj
+<<
+/Length 12334
+>>
+stream
+BT
+/TT2 1 Tf
+0 -8.9725 8.9725 0 12.2294 634.6305 Tm
+0 g
+/GS1 gs
+0 Tc
+0 Tw
+(-11-)Tj
+-19.0833 60.1667 TD
+0.0005 Tc
+0.006 Tw
+[([24])-1333.5(Hockney, R.W. and J.W. Eastwood, )]TJ
+/TT6 1 Tf
+17.7402 0 TD
+0.0008 Tc
+0.0076 Tw
+[(Computer Simulation using Particles)]TJ
+/TT2 1 Tf
+14.9101 0 TD
+0.0006 Tc
+0.0055 Tw
+(, IOP, Bristol,)Tj
+-29.6503 -1 TD
+0.0088 Tc
+0.0877 Tw
+[(1987, 540.)]TJ
+-3 -1 TD
+0.0004 Tc
+0.0024 Tw
+[([25])-1333.6(Hwang, Y.S., R. Das and J.H. Saltz, "Parallelizing Molecular-Dynamics Programs For)]TJ
+3 -1 TD
+-0.0075 Tc
+0 Tw
+(Distributed-Memory Machines", )Tj
+/TT6 1 Tf
+13.0973 0 TD
+(Ieee Computational Science & Engineering)Tj
+/TT2 1 Tf
+17.1428 0 TD
+-0.0042 Tc
+(, )Tj
+/TT4 1 Tf
+0.4915 0 TD
+0 Tc
+(2)Tj
+/TT2 1 Tf
+0.4915 0 TD
+-0.0075 Tc
+(, 18-29,)Tj
+-31.2231 -1 TD
+0.0141 Tc
+(\(1995\).)Tj
+-3 -1 TD
+0.0005 Tc
+0.0051 Tw
+[([26])-1333.5(Janak, J.F. and P.C. Pattnaik, "Protein Calculations On Parallel Processors .2. Parallel)]TJ
+3 -1 TD
+-0.0099 Tc
+0 Tw
+(Algorithm For the Forces and Molecular-Dynamics", )Tj
+/TT6 1 Tf
+21.0467 0 TD
+-0.0101 Tc
+(Journal Of Computational Chemistry)Tj
+/TT2 1 Tf
+14.6293 0 TD
+0 Tc
+(,)Tj
+/TT4 1 Tf
+-35.676 -1 TD
+0.0226 Tc
+(13)Tj
+/TT2 1 Tf
+1.0452 0 TD
+0.0096 Tc
+0.0957 Tw
+(, 1098-1102, \(1992\).)Tj
+-4.0452 -1 TD
+0.0022 Tc
+0.0234 Tw
+[([27])-1331.8(Kalia, R.K., A. Nakano, D.L. Greenwell, P. Vashishta and S.W. de Leeuw, "Parallel)]TJ
+3 -1 TD
+-0.0127 Tc
+0 Tw
+(Algorithms For Molecular-Dynamics Simulations On Distributed-Memory Mimd Machines",)Tj
+/TT6 1 Tf
+T*
+0.0133 Tc
+(Supercomputer)Tj
+/TT2 1 Tf
+6.2832 0 TD
+0.0012 Tc
+(, )Tj
+/TT4 1 Tf
+0.5142 0 TD
+0.0142 Tc
+(10)Tj
+/TT2 1 Tf
+1.0283 0 TD
+0.0051 Tc
+0.0506 Tw
+(, 11-25, \(1993\).)Tj
+-10.8257 -1 TD
+0.0008 Tc
+0.0086 Tw
+[([28])-1333.2(Liem, S.Y., D. Brown and J.H.R. Clarke, "An investigation of the homogeneous shear non-)]TJ
+3 -1 TD
+0.0037 Tc
+0.0363 Tw
+(equilibrium molecular dynamics method", )Tj
+/TT6 1 Tf
+17.4463 0 TD
+0.0027 Tc
+0.0273 Tw
+[(Phys. Rev. A.)]TJ
+/TT2 1 Tf
+5.3935 0 TD
+0.0007 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5084 0 TD
+0.0085 Tc
+(45)Tj
+/TT2 1 Tf
+1.017 0 TD
+0.0036 Tc
+0.0358 Tw
+(, 3706-3713, \(1992\).)Tj
+-27.3652 -1 TD
+0.0003 Tc
+0.0022 Tw
+[([29])-1333.7(Liem, S.Y., D. Brown and J.H.R. Clarke, "Molecular dynamics simulations on distributed)]TJ
+3 -1 TD
+0.0068 Tc
+0.0684 Tw
+(memory machines", )Tj
+/TT6 1 Tf
+8.5268 0 TD
+0.0696 Tw
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.4511 0 TD
+0.0013 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5157 0 TD
+0.0157 Tc
+(67)Tj
+/TT2 1 Tf
+1.0315 0 TD
+0.0062 Tc
+0.0615 Tw
+(, 261-267, \(1991\).)Tj
+-21.5251 -1 TD
+-0.0026 Tc
+-0.0001 Tw
+[([30])-1336.6(Lin, S.L., B.M. Pettitt and G.N. Phillips, "Molecular-Dynamics With Charmm On a Parallel)]TJ
+3 -1 TD
+0.0005 Tc
+0 Tw
+(Computer", )Tj
+/TT6 1 Tf
+4.9179 0 TD
+0.005 Tw
+(Faseb Journal)Tj
+/TT2 1 Tf
+5.8162 0 TD
+0 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+(6)Tj
+/TT2 1 Tf
+0.5 0 TD
+0.0003 Tc
+0.0029 Tw
+(, A 464-a 464, \(1992\).)Tj
+-14.7341 -1 TD
+-0.0036 Tc
+-0.0001 Tw
+[([31])-1337.6(Mattson, T.G. and G. Ravishanker, "Portable Molecular-Dynamics Software For Parallel)]TJ
+3 -1 TD
+0.0085 Tc
+0 Tw
+(Computing", )Tj
+/TT6 1 Tf
+5.5959 0 TD
+0.0078 Tc
+0.0774 Tw
+(Acs Symposium Series)Tj
+/TT2 1 Tf
+9.2529 0 TD
+0.0014 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5173 0 TD
+0.0173 Tc
+(592)Tj
+/TT2 1 Tf
+1.552 0 TD
+0.0068 Tc
+0.068 Tw
+(, 133-150, \(1995\).)Tj
+-19.9181 -1 TD
+0 Tc
+0 Tw
+([32])Tj
+3 0 TD
+-0.0064 Tc
+(M¸ller-Plathe, F. and D. Brown, "Multi-colour algorithms in molecular simulatons:)Tj
+0 -1 TD
+-0.0022 Tc
+(vectorization and parallelisation of internal forces and constraints", )Tj
+/TT6 1 Tf
+26.9389 0 TD
+-0.0028 Tc
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.1476 0 TD
+0 Tc
+(,)Tj
+/TT4 1 Tf
+-35.0865 -1 TD
+0.031 Tc
+(64)Tj
+/TT2 1 Tf
+1.062 0 TD
+0.0105 Tc
+0.1048 Tw
+(, 7-14, \(1991\).)Tj
+-4.062 -1 TD
+0.0004 Tc
+0.0025 Tw
+[([33])-1333.6(Petersen, H.G. and J.W. Perram, "Molecular dynamics on Transputer arrays. I. Algorithm)]TJ
+3 -1 TD
+-0.0068 Tc
+0 Tw
+(design, programming issues, timing experiments and scaling projections", )Tj
+/TT6 1 Tf
+29.321 0 TD
+-0.0087 Tc
+(Molecular)Tj
+-29.321 -1 TD
+0.0197 Tc
+(Physics)Tj
+/TT2 1 Tf
+3.1924 0 TD
+0.0018 Tc
+(, )Tj
+/TT4 1 Tf
+0.5224 0 TD
+0.0225 Tc
+(67)Tj
+/TT2 1 Tf
+1.045 0 TD
+0.0088 Tc
+0.0881 Tw
+(, 849-860, \(1989\).)Tj
+-7.7598 -1 TD
+-0.0016 Tc
+-0.0001 Tw
+[([34])-1335.6(Pinches, M.R.S., D.J. Tildesley and W. Smith, "Large scale molecular dynamics on parallel)]TJ
+3 -1 TD
+-0.0032 Tc
+0 Tw
+(computers using the link-cell algorithm", )Tj
+/TT6 1 Tf
+16.5496 0 TD
+-0.0035 Tc
+(Molecular Simulation)Tj
+/TT2 1 Tf
+8.679 0 TD
+0 Tc
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+(6)Tj
+/TT2 1 Tf
+0.5 0 TD
+-0.0033 Tc
+(, 51-87, \(1991\).)Tj
+-29.2286 -1 TD
+-0.0047 Tc
+-0.0014 Tw
+[([35])-1338.7(Plimpton, S., )]TJ
+8.3885 0 TD
+-0.0061 Tc
+0 Tw
+("Fast Parallel Algorithms For Short-Range Molecular-Dynamics", )Tj
+/TT6 1 Tf
+26.4009 0 TD
+-0.007 Tc
+(Journal Of)Tj
+-31.7894 -1 TD
+0.0064 Tc
+0.0641 Tw
+(Computational Physics)Tj
+/TT2 1 Tf
+9.504 0 TD
+0.0009 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5107 0 TD
+0.0107 Tc
+(117)Tj
+/TT2 1 Tf
+1.532 0 TD
+0.0036 Tc
+0.0361 Tw
+(, 1-19, \(1995\).)Tj
+-14.5468 -1 TD
+-0.0039 Tc
+-0.0002 Tw
+[([36])-1337.9(Plimpton, S. and B. Hendrickson, "A new parallel method for molecular dynamics)]TJ
+3 -1 TD
+0.0033 Tc
+0.032 Tw
+[(simulations of macromolecular systems", )]TJ
+/TT6 1 Tf
+17.0245 0 TD
+0.0029 Tc
+0.0289 Tw
+(J. Comp. Chem.)Tj
+/TT2 1 Tf
+6.5147 0 TD
+0.0007 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5078 0 TD
+0.0077 Tc
+(17)Tj
+/TT2 1 Tf
+1.0153 0 TD
+0.003 Tc
+0.03 Tw
+(, 326-337, \(1996\).)Tj
+-28.0622 -1 TD
+-0.005 Tc
+-0.0015 Tw
+[([37])-1339(Plimpton, S. )]TJ
+8.1391 0 TD
+-0.0065 Tc
+0 Tw
+(and B. Hendrickson, "Parallel Molecular-Dynamics Simulations Of Organic)Tj
+-5.1391 -1 TD
+-0.0051 Tc
+(Materials", )Tj
+/TT6 1 Tf
+4.6236 0 TD
+-0.0057 Tc
+(International Journal Of Modern Physics C Physics and Computers)Tj
+/TT2 1 Tf
+26.8627 0 TD
+-0.0033 Tc
+(, )Tj
+/TT4 1 Tf
+0.4935 0 TD
+0 Tc
+(5)Tj
+/TT2 1 Tf
+0.4935 0 TD
+-0.0059 Tc
+(, 295-298,)Tj
+-32.4733 -1 TD
+0.0141 Tc
+(\(1994\).)Tj
+-3 -1 TD
+-0.0046 Tc
+-0.0004 Tw
+[([38])-1338.6(Plimpton, S., R. Pollock and M. Stevens. )]TJ
+/TT6 1 Tf
+19.4351 0 TD
+-0.0056 Tc
+0 Tw
+(Particle-Mesh Ewald and rRESPA for Parallel)Tj
+-16.4351 -1 TD
+-0.0099 Tc
+(Molecular Dynamics Simulations)Tj
+/TT2 1 Tf
+13.0897 0 TD
+-0.0068 Tc
+(. in )Tj
+/TT6 1 Tf
+1.4937 0 TD
+-0.0094 Tc
+(SIAM Conference on Parallel Processing for Scientific)Tj
+-14.5834 -1 TD
+0.0095 Tc
+(Computing)Tj
+/TT2 1 Tf
+4.5303 0 TD
+0.0033 Tc
+0.0332 Tw
+(. 1997.)Tj
+-7.5303 -1 TD
+-0.0011 Tc
+-0.0001 Tw
+[([39])-1335.1(Pollock, E.L. and J. Glosli, "Comments on the P3M, FMM, and the Ewald method for large)]TJ
+3 -1 TD
+0.0057 Tc
+0.0565 Tw
+(periodic Coulombic systems", )Tj
+/TT6 1 Tf
+12.63 0 TD
+0.0062 Tc
+0.0613 Tw
+(Comp. Phys. Comms.)Tj
+/TT2 1 Tf
+8.8172 0 TD
+0.0012 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5137 0 TD
+0.0136 Tc
+(95)Tj
+/TT2 1 Tf
+1.0272 0 TD
+0.0051 Tc
+0.0509 Tw
+(, 93-110, \(1996\).)Tj
+-25.988 -1 TD
+-0.0011 Tc
+-0.0001 Tw
+[([40])-1335.1(Raine, A.R.C., D. Fincham and W. Smith, "Systolic loop methods for molecular dynamics)]TJ
+3 -1 TD
+0.0041 Tc
+0.0409 Tw
+(simulation using multiple Transputers", )Tj
+/TT6 1 Tf
+16.4281 0 TD
+0.0045 Tc
+0.0451 Tw
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.361 0 TD
+0.0008 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5102 0 TD
+0.0102 Tc
+(55)Tj
+/TT2 1 Tf
+1.0203 0 TD
+0.0032 Tc
+0.0312 Tw
+(, 13, \(1989\).)Tj
+-29.3196 -1 TD
+-0.0048 Tc
+0 Tw
+[([41])-1338.8(Rapaport, )]TJ
+7.098 0 TD
+-0.0068 Tc
+0.0001 Tw
+(D.C., "Microscale hydrodynamics; discrete-particle simulation of evolving flow)Tj
+-4.098 -1 TD
+0.0098 Tc
+0 Tw
+(patterns", )Tj
+/TT6 1 Tf
+4.2782 0 TD
+0.0081 Tc
+0.0806 Tw
+(Phys. Rev. A.)Tj
+/TT2 1 Tf
+5.5695 0 TD
+0.0021 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5251 0 TD
+0.0251 Tc
+(36)Tj
+/TT2 1 Tf
+1.0502 0 TD
+0.0106 Tc
+0.1061 Tw
+(, 3288-3299, \(1987\).)Tj
+-14.423 -1 TD
+-0.0047 Tc
+-0.0012 Tw
+[([42])-1338.7(Rapaport, D.C., )]TJ
+9.46 0 TD
+-0.0059 Tc
+0 Tw
+("Multimillion Particle Molecular-Dynamics .3. Design Considerations For)Tj
+-6.46 -1 TD
+0.0011 Tc
+0.0106 Tw
+(Data-Parallel Processing", )Tj
+/TT6 1 Tf
+10.8165 0 TD
+0.0013 Tc
+0.013 Tw
+(Computer Physics Communications)Tj
+/TT2 1 Tf
+14.3999 0 TD
+0 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+0.0023 Tc
+(76)Tj
+/TT2 1 Tf
+1.0047 0 TD
+0.0009 Tc
+0.0091 Tw
+(, 301-317, \(1993\).)Tj
+-29.7211 -1 TD
+-0.0048 Tc
+-0.0011 Tw
+[([43])-1338.8(Ryckaert, J.-P., )]TJ
+9.2871 0 TD
+-0.0059 Tc
+0 Tw
+("Special geometric constraints in the molecular dynamics of chain)Tj
+-6.2871 -1 TD
+0.0025 Tc
+(molecules", )Tj
+/TT6 1 Tf
+5.0177 0 TD
+0.0031 Tc
+0.031 Tw
+(Molecular Physics)Tj
+/TT2 1 Tf
+7.5536 0 TD
+0.0005 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5057 0 TD
+0.0056 Tc
+(55)Tj
+/TT2 1 Tf
+1.0112 0 TD
+0.0022 Tc
+0.0219 Tw
+(, 549-556, \(1985\).)Tj
+-17.0881 -1 TD
+0.0004 Tc
+0.0023 Tw
+[([44])-1333.6(Ryckaert, J.-P., G. Ciccotti and H.J.C. Berendsen, "Numerical integration of the cartesian)]TJ
+3 -1 TD
+-0.0068 Tc
+0 Tw
+(equations of motion of a system with constraints: molecular dynamics of liquid alkanes", )Tj
+/TT6 1 Tf
+35.2375 0 TD
+-0.0118 Tc
+(J.)Tj
+-35.2375 -1 TD
+0.0123 Tc
+0.1232 Tw
+(comput. Phys.)Tj
+/TT2 1 Tf
+5.9212 0 TD
+0.0021 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5251 0 TD
+0.0252 Tc
+(23)Tj
+/TT2 1 Tf
+1.0503 0 TD
+0.0094 Tc
+0.0943 Tw
+(, 327-41, \(1977\).)Tj
+-10.4966 -1 TD
+-0.0047 Tc
+-0.0007 Tw
+[([45])-1338.7(Sato, H., Y. Tanaka and T. )]TJ
+13.823 0 TD
+-0.0054 Tc
+0 Tw
+(Yao, "Molecular-Dynamics Simulation On an Ap1000)Tj
+-10.823 -1 TD
+-0.0062 Tc
+(Distributed Memory Parallel Computer", )Tj
+/TT6 1 Tf
+16.4148 0 TD
+-0.0058 Tc
+(Fujitsu Scientific & Technical Journal)Tj
+/TT2 1 Tf
+15.1646 0 TD
+-0.0036 Tc
+(, )Tj
+/TT4 1 Tf
+0.4928 0 TD
+-0.0073 Tc
+(28)Tj
+/TT2 1 Tf
+0.9855 0 TD
+-0.0065 Tc
+(, 98-106,)Tj
+-33.0577 -1 TD
+0.0141 Tc
+(\(1992\).)Tj
+-3 -1 TD
+-0.0037 Tc
+[([46])-1337.7(Smi)]TJ
+4.5856 0 TD
+-0.0088 Tc
+0.0001 Tw
+(th, W., "Molecular-Dynamics On Distributed Memory \(Mimd\) Parallel Computers",)Tj
+/TT6 1 Tf
+-1.5856 -1 TD
+0.0004 Tc
+0.004 Tw
+(Theoretica Chimica Acta)Tj
+/TT2 1 Tf
+10.0713 0 TD
+0 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+(84)Tj
+/TT2 1 Tf
+1 0 TD
+0.0003 Tc
+0.0034 Tw
+(, 385-398, \(1993\).)Tj
+-14.5713 -1 TD
+0.0007 Tc
+0.0074 Tw
+[([47])-1333.3(Smith, W., "Molecular dynamics on hypercube parallel computers", )]TJ
+/TT6 1 Tf
+30.5273 0 TD
+0.0008 Tc
+0.0086 Tw
+(Comp. Phys. Comm.)Tj
+/TT2 1 Tf
+8.2257 0 TD
+0 Tc
+0 Tw
+(,)Tj
+/TT4 1 Tf
+-35.753 -1 TD
+0.0253 Tc
+(62)Tj
+/TT2 1 Tf
+1.0507 0 TD
+0.0099 Tc
+0.0993 Tw
+(, 229-248, \(1991\).)Tj
+60.9805 -4.1667 TD
+0 Tc
+0 Tw
+(-12-)Tj
+-19.0833 60.1667 TD
+([48])Tj
+3 0 TD
+-0.0088 Tc
+(Smith, W., "A Replicated Data Molecular-Dynamics Strategy For the Parallel Ewald Sum",)Tj
+/TT6 1 Tf
+0 -1 TD
+0.0041 Tc
+0.0411 Tw
+(Computer Physics Communications)Tj
+/TT2 1 Tf
+14.5413 0 TD
+0.0006 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5073 0 TD
+0.0073 Tc
+(67)Tj
+/TT2 1 Tf
+1.0147 0 TD
+0.0028 Tc
+0.0287 Tw
+(, 392-406, \(1992\).)Tj
+-19.0632 -1 TD
+-0.0036 Tc
+-0.0001 Tw
+[([49])-1337.6(Streett, W.B., D.J. Tildesley and G. Saville, "Multiple time step methods in molecular)]TJ
+3 -1 TD
+0.009 Tc
+0 Tw
+(dynamics", )Tj
+/TT6 1 Tf
+4.9295 0 TD
+0.0086 Tc
+0.0855 Tw
+(Mol. Phys.)Tj
+/TT2 1 Tf
+4.476 0 TD
+0.0017 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5199 0 TD
+0.0198 Tc
+(35)Tj
+/TT2 1 Tf
+1.0397 0 TD
+0.0077 Tc
+0.0779 Tw
+(, 639-648, \(1978\).)Tj
+-13.9651 -1 TD
+-0.0048 Tc
+0 Tw
+[([50])-1338.8(Tamayo, )]TJ
+6.719 0 TD
+-0.0072 Tc
+(P., J.P. Mesirov and B.M. Boghosian. )Tj
+/TT6 1 Tf
+15.0971 0 TD
+(Parallel approaches to short range molecular)Tj
+-18.8162 -1 TD
+0 Tc
+(dynamics simulations)Tj
+/TT2 1 Tf
+8.6387 0 TD
+(. in )Tj
+/TT6 1 Tf
+1.5278 0 TD
+0.0001 Tc
+0.001 Tw
+(Proceedings of Supercomputing '91)Tj
+/TT2 1 Tf
+14.3007 0 TD
+0.0009 Tw
+(, 1991, Albuquerque, New)Tj
+-24.4672 -1 TD
+-0.0078 Tc
+0 Tw
+(Mexico: IEEE Computer Society Press.)Tj
+-3 -1 TD
+-0.0001 Tc
+[([51])-1334.1(Tuckerman, M.E., G.J. Martyna and B.J. Berne, "Molecular dynamics algorithm for)]TJ
+3 -1 TD
+0.0023 Tc
+0.0238 Tw
+(condensed systems with multiple time scales", )Tj
+/TT6 1 Tf
+19.0716 0 TD
+0.0235 Tw
+(J. Chem. Phys.)Tj
+/TT2 1 Tf
+6.0504 0 TD
+0.0006 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5068 0 TD
+0.0067 Tc
+(93)Tj
+/TT2 1 Tf
+1.0133 0 TD
+0.0028 Tc
+0.0283 Tw
+(, 1287-1291, \(1990\).)Tj
+-29.6421 -1 TD
+-0.0033 Tc
+-0.0002 Tw
+[([52])-1337.3(Zhou, R.H. and B.J. Berne, "A New Molecular-Dynamics Method Combining the Reference)]TJ
+3 -1 TD
+-0.01 Tc
+0 Tw
+(System Propagator Algorithm With a Fast Multipole Method For Simulating Proteins and)Tj
+T*
+0.0012 Tc
+0.0115 Tw
+(Other Complex-Systems", )Tj
+/TT6 1 Tf
+10.8196 0 TD
+0.001 Tc
+0.0097 Tw
+(Journal Of Chemical Physics)Tj
+/TT2 1 Tf
+11.8043 0 TD
+0 Tc
+0 Tw
+(, )Tj
+/TT4 1 Tf
+0.5 0 TD
+0.0023 Tc
+(103)Tj
+/TT2 1 Tf
+1.507 0 TD
+0.001 Tc
+0.01 Tw
+(, 9444-9459, \(1995\).)Tj
+ET
+endstream
+endobj
+29 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT6 6 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+30 0 obj
+<<
+/ProcSet [/PDF /ImageB ]
+/XObject <<
+/Im1 31 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+18 0 obj
+<<
+/Type /Pattern
+/Matrix [0 -23.04 -23.04 0 28 811]
+/PatternType 1
+/Resources 30 0 R
+/PaintType 1
+/TilingType 1
+/BBox [0 0 1 1]
+/XStep 1
+/YStep 1
+/Length 68
+>>
+stream
+1 1 1 rg
+/GS1 gs
+0 1 1 -1 re
+f
+0 0 0 rg
+q
+1 0 0 -1 0 1 cm
+/Im1 Do
+Q
+endstream
+endobj
+32 0 obj
+<<
+/ProcSet [/PDF /ImageB ]
+/XObject <<
+/Im2 33 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+19 0 obj
+<<
+/Type /Pattern
+/Matrix [0 -23.04 -23.04 0 28 811]
+/PatternType 1
+/Resources 32 0 R
+/PaintType 1
+/TilingType 1
+/BBox [0 0 1 1]
+/XStep 1
+/YStep 1
+/Length 68
+>>
+stream
+1 1 1 rg
+/GS1 gs
+0 1 1 -1 re
+f
+0 0 0 rg
+q
+1 0 0 -1 0 1 cm
+/Im2 Do
+Q
+endstream
+endobj
+34 0 obj
+<<
+/ProcSet [/PDF /ImageB ]
+/XObject <<
+/Im3 35 0 R
+>>
+/ExtGState <<
+/GS1 8 0 R
+>>
+>>
+endobj
+20 0 obj
+<<
+/Type /Pattern
+/Matrix [0 -23.04 -23.04 0 28 811]
+/PatternType 1
+/Resources 34 0 R
+/PaintType 1
+/TilingType 1
+/BBox [0 0 1 1]
+/XStep 1
+/YStep 1
+/Length 68
+>>
+stream
+1 1 1 rg
+/GS1 gs
+0 1 1 -1 re
+f
+0 0 0 rg
+q
+1 0 0 -1 0 1 cm
+/Im3 Do
+Q
+endstream
+endobj
+31 0 obj
+<<
+/Type /XObject
+/Subtype /Image
+/Width 24
+/Height 24
+/BitsPerComponent 1
+/ImageMask true
+/Length 73
+>>
+stream
+ﬂﬂﬂøøøˇˇˇ˜˜˜˚˚˚˝˝˝ˇˇˇﬂﬂﬂøøøˇˇˇ˜˜˜˚˚˚˝˝˝ˇˇˇﬂﬂﬂøøøˇˇˇ˜˜˜˚˚˚˝˝˝ˇˇˇ
+endstream
+endobj
+33 0 obj
+<<
+/Type /XObject
+/Subtype /Image
+/Width 24
+/Height 24
+/BitsPerComponent 1
+/ImageMask true
+/Length 73
+>>
+stream
+øøø___ˇˇˇˇˇˇ˚˚˚ıııˇˇˇˇˇˇøøø___ˇˇˇˇˇˇ˚˚˚ıııˇˇˇˇˇˇøøø___ˇˇˇˇˇˇ˚˚˚ıııˇˇˇˇˇˇ
+endstream
+endobj
+35 0 obj
+<<
+/Type /XObject
+/Subtype /Image
+/Width 24
+/Height 24
+/BitsPerComponent 1
+/ImageMask true
+/Length 73
+>>
+stream
+øøøﬂﬂﬂÔÔÔ˜˜˜˚˚˚˝˝˝˛˛˛øøøﬂﬂﬂÔÔÔ˜˜˜˚˚˚˝˝˝˛˛˛øøøﬂﬂﬂÔÔÔ˜˜˜˚˚˚˝˝˝˛˛˛
+endstream
+endobj
+8 0 obj
+<<
+/Type /ExtGState
+/SA false
+/SM 0.02
+/OP false
+/op false
+/OPM 1
+/BG2 /Default
+/UCR2 /Default
+/HT /Default
+/TR2 /Default
+>>
+endobj
+36 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 701
+/CapHeight 0
+/Descent -298
+/Flags 4
+/FontBBox [-167 -299 1063 827]
+/FontName /BNEONK+Symbol
+/ItalicAngle 0
+/StemV 0
+/FontFile2 37 0 R
+>>
+endobj
+37 0 obj
+<<
+/Filter /FlateDecode
+/Length 4671
+/Length1 7632
+>>
+stream
+Hâºó|VU«?Áû{Ô3`‚X§"¨m¡ú4ñŒâ44!M¢â∏6cŸ∆x6~hÊ*—¢p—"4C%^∏ëÃàÖ:‘Ps%iòi∏åàxÚÙ9ü=¶/´ˇ|˘Ïı}üÔèÛÛ{Œπ˜@:·#´™∫zn‚î˝`F–;pV¨n\fQ2{ac÷ºÎ‚>Ì; o‡úÖbÙOl;Kø¶:6{‹†ºÀho†}qÕú™∆ﬁˆˆ"µ&:∑æÍ‹hÌ˝¥[Á÷-©9µÁÕ˚ÅãÅ>uµs™™w];∫»hc¸≤Z:RüÒ÷≤Î:⁄√jÎØºs p⁄´ÿ«êõöbç&≤Ï ≤ôÒ∫∫ÜŸUG6øu8ˇuŒqU}’‚h sÊ6ˆ«˛ë5Ø™~N”’wGÅ!çå€ËÇ9—ä/y H9èí]–]bo¨“Ü1>¨©˛À5Øxè06†ƒ≠'ë¿/)ª)OPû§<’ªæ·◊ÉΩç€ΩãÈËDÖ9Ç≠fVö|¨`t4∂`+∫(£êèJªëuN£;–ÌÕƒ≥¥jP‡b9”X´›Ûº4°”¨Eß◊ﬂk6cΩ◊nñbf ”œeÕc(∑€PèBÔT¯7yÀ#@ÃªM&1TxWyS˙xhÛècT03Ò8:∞—÷{á#(6'ÿ{-^≈åÙFaZΩYúÈN”m∂õ}Ê†WÜÁÕns⁄ÏJÙW√Uûãû†€Ω¡òèÌ¥c¨ıìqó„LÁ¸ù‘ò5¡≥f=◊?ï´ÔA÷a5˝ÎXØ∂˘ñ3«(Âﬂp€FOaßæw°,Ë∆”é¶∞ôπbÃn7[Qh€Ç∏Èí›¶s(Ã@ëüÌÂÜ∏oﬁo!ÓgÕmx-hı62ÈAª7≥zsÇ)AV≠»Ãd≥ú……é°Ã<ÊÂ#Õn4õﬁÕM¥wÿK'¢:8bzÃâ¢0«lNx@‹tÜ#1∆úÕŒ∞(ÏœqÊqÁ-Àó&p+.÷›Í=_¡¢πµ∫Kã™k]…´ŸË—ÿÕHÊU’π¸ö˜ü«që0≠g0"+≠√Àπ¶∫c‹ÁÀ≥ˆ\üù?‚fVZ$´S;ŒZíµ#ëòZÓÆÔÜtÿúî?gËÅˇ<ê?b“‘Ú¨&2°8ŸÌÑ b:Ø+ßÍ,∫ÈüPúØ«“˛ü)”œl:µ?•ÂønOóø5“NÚ	√¬€ÑW}$NÜõ–°ív•“Ø∆∆À)+º¢ƒQ>îFS6P∆$ıBJe•àRFôÏae	€ª> ]i[—Ã>ß9·X=v÷õuÿ‡J[à%v∂∞ﬁÃÄw≈çõlWÓ∑c≠=Ü•ÙóÜk9n5Üzâí05Ù˝÷ØNdGËœÙ!/xŸµcõ–0aÊ'˚™WŸm2"ás‚ÙîÈÿÃ~F±ø6'A≥W4„Æ†+q<òéø#˝ÉÓ$ËB^–√|lBı±¨ó…`ŸÖ‹`8Ê≥úŒ>.Úcî«ëŒ6Ÿ¡rc"cÉ¬ôÇTL‰<VÿRxúc	%óc§˚yÃ˘Ωhg¨ø[#mÿ£»¶~•ôuJl”l<Òºﬂû8¡x!˝ÉÊƒ	Œc¢€#sqˆª&£dSˆRZ∏æßıÜàc Áó„ƒÂ¬≠˚É¬q∂27≈NúŒ¸4≈(M∆6RÓc˚÷∞ôÃ˝òÍÚÆ5π6;ì“‚ÑıK8F)œ√jÆk§Æ==ÿñ8Œ>∆p.ı¨S¿∫≠I…q9d∆⁄cf;Û2£∑î^ÛnÈÁ^w{˘)H,M∂„òÊ4e/˜zñìH¶…≤DRäNÊßÇπwg'ìkiÊSdñŒ˝ˇê‰mÈ+^*gÀ€oXˆ∆,}C$ﬂÊHá˜Z}Á©KÛnçDb◊˚K3>·-3Œ¿_¥h&=ÈFÑ#‚ÒÒ¥xJ<)ûˇ%ˇ)ˇ!ˇ.æ-˛MÏﬂèà’:ﬂî˛˛Çj,ùÂtã√“ˇ,_äàØâ˜ãø__'Ó_¬◊ë¡—^¬PZ/ ˜"uøñ˛BíŒÛºÙÁƒ_âœb˘åÙß≈=bó¯îÊ˛§Ù'ƒ›bß¯qß¯sÒqÒg‚c¯)ÆÂºÎµ/p|Á±¸:x˝ŸÅsd-c‰QæyC˙\ƒí„Ë€ÆìÙ.!∑Ò›c«'0ø
+YÔaæﬂ,ÈÍm’?—\;GX:ﬂC¸>YHÀ˘úÂF⁄íÏ¡E,Èz¯1&Qﬂ§6äà˜´œç∏ú¸ëÙ˚‰ˇ°FøWû{í˝›√o$gπ˛ú«‚j∑„…ÔsO,⁄’˙{mùÙÔämÓ„n|Ü\+œwƒo´á5ä~K\≠1W)zO≤≈ù™”™Ë7≈ï⁄”o®Œ
+Ò\Ëòxõsª]û€ƒÂ…≥≥W“r∫Â€˛V≠'ÆqÌ€≠ZOÛ∑üëEZ∞ãëeX QE,È2º_√Ùπà%]Fú«›V◊Ú´‚-∏YµnÈµ4ŒÕ™µDû≈‚"q°V›4æ˜^«∞ ÿ2÷k©•ÛX~øEµ˚Ûâ¢Aª’ÓG5∑Ã√Ù5h˜47Á±¯ä⁄‘äs≈9‚lÒKbÖx£8SºÅﬂ≠ÓÆﬂ kÜÊyΩÙrÒã‚tÒ‚4Ò:ÌTôÙ©‚µ‚Òs‚dqíXí¯#g˙Yı?Qûb›Ë´•_%é«i5c•_)éØGãóãElmyÊú>JºT,/Ë≥¸Ís˙E‚ß≈|qJ»<Èüáã"óc,ùï´zÅÙqŒ&áÚK€‚ì<ÒŸÚg1Gñﬂ€Æ˛'‰…ê>D<æ˜ú/“ÿÁ©÷π‚9‚«ìLcvb GX:ﬂ«êŒl,›àÈ…X∫n£”-€ú]€≥uª˙Àsñò*ˆ˚ä}ƒ1Çëd»ß´ÖﬁQ–;
+VÙt∑<ıl4ˇJÆæíﬁeÏ}e•É≤ãÅ1ìó∑öXﬁGÚ√G3Ãá˘À¯œóÇ˚ﬁ¡¨<Ô}oÙeû}Óï{ßÃ'ˇâ‰>•Ë«=ÎìŸèÒæÙ˜„ﬂøŸÆ÷‡&Æ+|Ô›ádΩºZΩ-k≠ï%K¬zÿí%Ÿµ‚epL]ìhl#^%4NC!6ÜJ°!@LhÜB=x&!M&§èl
+“ÜG–8¥Cìim @ZC«UÄ¯ùòuœÆÅ…t:G+ùΩ˜h˜úsøÛù{Uêoÿ⁄îŒcQ∂0SÜ x-¨íÙrT.haµ\†HÄÁT†
+xéDË¡“¢TWÇ•Ñ‰˚`$ ¬@›AèÇ¿) *Jï%Ôó7Z®Œ&%Çf–W£Vˇ>à≠éBpnÎ}É¬fáÄµ–gﬁÇÒ3–É¥ª˝9Ω˙C§˝ü]ñ¸êïëY=˚ß∂mûe o3U˙+≤ÓytÇVIËUÃ;
+ûmÈjÜ–(zÒÍ≈ZƒÂ/Ê/÷òå¢—'≈U4öË£ú7•*√É˚ΩlP~◊bÿ+´©_BïÕL˚‘%f÷ƒÍ˜àÜ›££wõçî^e‚ö5çt.’öπ|S.fkÄ«O4ç≈Æ¬≈ùm0Ú58nU"\˛TeBLâpŸ®ˆ˜•Oˆ„—áÁÓ/¯=éêR$}Øãm€∑Ì~◊ÄÚ-˚Q	˚ﬁıdÙ«È÷˙§ﬂC÷ €≠pÎ9-C´Q*ôp´{µ\u„ªâË@9◊7Ω: ÜhÖñ Ω.ëT•¨¶î)TJW–ÑvTp~ÏüŒÂ≥πã˘ÏXéo‡m‡§‚v!6û+‰∏——‚(wˆ¨Ï9\Fe÷AòU¨õ≠ÒX2∑òŸJOï±éOE∞ü#†7„∏ÄaŒTÈaUï”A•·FßL©F¬z"Lºgmˇñ¯^Œf◊œüWKºUô&¸Õ.mTı⁄p%Óﬁ5gvtiè…B&åÓ+ùOˇ™s›fÕ;ÉoaTÅ©gÖ•*Ètˇz}|ØO&˜¨’ª\ÑÌYÇe¿Ÿâ>œ,SjÈ{iSÄ Ê%8f≤¡àQQjZ≈Âπúlt¨ 1µ=≥(]˚ŸHv äòLEöfà;)ñ"åûÂ;áic˚ôÌÃØŸS¨gU76¶‚∆‘c8ã≤ù)±ã8˛2!m#?˝Íyí/¶~˚’pEÈsàπÃÃüÙP5{”Kûr˚4£AÖﬁ÷iûa√éàøY9√˛-;±GˆWîÔpÕQœ—µ±m$£ŒË∫Ÿn“„_e÷–.ãPéú¡m†ÂH„™ÏF‰ó
+BT†ÑÚ†GU8l*dcÖXlº¿›Ã∆∆o’fQ¥ªïœ6c\1¶¸N≠.,´q:N‘U˘ÿb∂⁄∞ª∞Töëo-bb:n∆!∞˙¿ ü©9.≠;92rø±©ÃgHß•[ô˛áøÿêënJ‡4⁄7ì:5qC·‰»ûø0rr¥îfIÀ
+≠¶¯ß”˜Ã÷Ï<í÷Âú˘ﬁÈ?~°—~g.	 +ÿ2Y§/S«Ä™—∑”Iª”™G6´0ç5Q%É&'5®ÛâŒæPÜŒ®ª´◊T˜_‘≤V[µq`ƒÍl¨√‚ÚÖ|Œ(ÉWP=∆çÛpD-
+ê1e¿*∂è!Ì7¿,J‘°xÃj3QôkΩõˆÓ¸Iˇ¸lª%Èˆ¥áƒ0ÎOœú€·[¯¡÷Û“C¨9±˜∏ØﬂπtÍ˙πø\;GéJwÃÌÏåW[{◊º8Í&l…ü¡¬{Ô·:K&oSfV /ÅÖk“8V”Év√ ÃæM–™Uã9úÑÉèRô„c\1ˇoπ
+-èÒ∆D]2¡UUzeÇ;πâë„±∏Êïù=§w”÷~Í¡ß7˛˘ÈÁˇ¯äJøëæ¿Zºkæ°VãqQó.ë§∑•S“!ÈU¸^ÅÁ·’ê˝Yìwhû:Ÿ∑!1m,9 SGuG¯>;äî≤ã]Nl·±;5∏é(â‰ÂD∆ê≈å¶2GuÔ›º{x˜ŒÌ“Ì+K_.I„ÿÜw∞˘¸–ﬂ§ªG»I∫v]˙ÎÚW∞I^˜˘ÊÀ‘5$wú∆¥†ÛPrèS†é⁄á¯>üPQ™c°U9JYá≈ß∏ëìπâîú\>«ï≈˝öOîÄü¯4≈F©∏º∫U‘¿ô7v<{Á˚lΩ/Iü›Ω!}éCˇâ·“Ã”©0ı‘rÛº˝66}8¸ôtÔ˘Ó7Nm…C∫èØcﬁPÊ\πÄAxÚì…ª‘J‡ÂÍJ«Ì»±ñ±!@TX©k9WË›Ä8¿ıE]Ç)¢p±?†ZMA:d¢\.?Òò}ß¢P∏∑húb]eÊˇsn2ÂÒW=aYÎÀ s~Ç;≠~^SªqÎˆÜ¢5mÆg_–U´ùè˝Ωqi6ÿ˚3◊2¡U\]6{hÒ∫-Í∑`C0∑ô∞ıuªze*ÌÕ“r◊y}D≠°$ÿÕg“5≥íMâ2ÉYﬂæ ‡EN˝ÏDâ¶©%f461êL8Àfœ2Ëë¶°U5√:∏|⁄_.¶Ùπ€6Â‡3È#“±⁄¨6yyîíÉZú“ ‘ÕXY"–R≤T˘´¸`ü§\é@@SXª∞<h*‚ËXÔ—áÎj<Ò˝≠-aø72øeìXù®)±˜uw¨wÎ£±Gsæ hÃy¶•S*æá¨àÈ)JW'∫√#c€k4«€uæ˜C¢/Æ%Dì®-ãòGp≠√ŒÍX¸Æ]Á=ˆy„%k!_´'ÔP.‡≠$ZônéÑ≈0Ú:Ì∫iák¬ÈR]Gò◊ÚÉ:÷~‘Ì≠ÒÆıyœz/;T€ó"oã)ÒªÎ,n™.≈ÂÛÓ÷_sÄç¨ãtiÄ7ö-*›òo‡.»ˆ$røFiOüå§lèSä„]ÀéΩæÂHPtálŒ¶∫ô-ÛöYõ‡ı∏ÌùeÈ÷’]7ÑÎ„√€ˆùXÖÔ:◊.x~{˜,—/V«˝ã3ôÂNè”ÌÒ=∑h˘≤+ú?⁄8∞©s≥ºˇ+*¬T¯2∫QﬁA&_$8	ﬁ`∫¡lÑhY,ê‡6ÍApˇ ﬁÉ‡Ö∑ûYÄl^(‘ë 2∞pE§ÄÌ{õ	ÿwpÑ≤A˝S(õ»ŒÑ≤ŸÄÏf'?W?oÌ‡ ‹§¸‹'?W†1~¿Œ©6C0C%∞SêÏ
+‰0£6ÿ»aHd(¬£é∞/è3T›-Ù®∑Í Í9±ø`XîcÀ±´V–Ôx~õØåå‡`Yx∂£÷ø¯∑ÍÔéF∂y‡–ÇÑ@Ä ÄFä{
+endstream
+endobj
+38 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 662
+/Descent -250
+/Flags 34
+/FontBBox [-168 -218 1000 898]
+/FontName /Times-Roman
+/ItalicAngle 0
+/StemV 84
+/XHeight 450
+/StemH 84
+>>
+endobj
+39 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 676
+/Descent -250
+/Flags 262178
+/FontBBox [-168 -218 1000 935]
+/FontName /Times-Bold
+/ItalicAngle 0
+/StemV 133
+/XHeight 461
+/StemH 139
+>>
+endobj
+40 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 653
+/Descent -250
+/Flags 98
+/FontBBox [-169 -217 1010 883]
+/FontName /Times-Italic
+/ItalicAngle -15
+/StemV 76
+/XHeight 441
+/StemH 76
+>>
+endobj
+41 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 701
+/CapHeight 0
+/Descent -298
+/Flags 32
+/FontBBox [-167 -299 1063 827]
+/FontName /BNFADC+Symbol
+/ItalicAngle 0
+/StemV 0
+/FontFile2 42 0 R
+>>
+endobj
+42 0 obj
+<<
+/Filter /FlateDecode
+/Length 3280
+/Length1 6240
+>>
+stream
+Hâºó|ïU«?Á9œÛ‹IÁö"¡bÁ§±tNƒâ≥As¨I4◊c,eÏ¬ ⁄ÇyC#ú?¢h·"4[JæÜàdD,‘·‘\JöfÑD-3Zºπ}Œgıeıü/Ô^ﬂ˜˘˛8?øÁúÁy ã1±Ææ~^Úm˚¿LqﬁŸ±˘‡‚0µD˘ú¶∫Ë©∑⁄ú÷·ÍÃY“í≥‡ä∏O˝^¿ÀöªdQåı¶v;Kø°>6g‚–ÇhÔ§}n√‹∫ñÅ˛ÏõDzCt^S›êhÌc¥€ÁÕ_÷pgWÈ¿©Ïﬂ[–8∑Æ~Á¥q¿g3~A#ÈOzkŸı-¥œlljπnı≠SG—N∞è·◊,éµò»äÀÄ»”åœüﬂ<ßÓ⁄˛˘ú[VÁx{S›u—¥gÃMÏè6r‘5ÕZ<≠‚÷`£Õ±X7ø”_wÒË¢π—ö˚Œc˚¥)È—EÕ—eˆjÊ"£åıœ\‹ÙïÜóΩáŒ‡|›˙íI¸ä≤ãÚ(Â1 „Î˝~}ÿÉq∏Ÿ[Ö	òÅn‘òCÿl÷`µ)ƒ*F«a6£á2Ö®µ]¨sΩÿÜ^oû¢’Ä"o(À©òŒZùûÁec1∫ÕZt{ÉΩ	Ê~¨˜:Õrl¿LåÛYÛ0™Ì4°ÿª5˛5ﬁ ÛÓ∆bìÅjºKΩ©'yË˚16òåYÿé∫lìw0RÉ2sÑΩ7‚UÏ√o,f£›õÕôÓ0Ωf´Ÿkˆ{Ux÷Ï2«Ãû†\\ÂÙ›ÿÍ√Bl•=¨üäó”ÅQúøì≥&x ¨Á˙+π˙>aÓ†Î%Pd;Ph9sºÅ
+˛ç≤ÙqÍªp™Ç^Ã4ùX∂2WåŸ≠f3ämG7=≤yëiÑŸ(ÒsΩ¸∞7„ç ·ç˜ˆb)‚^?kn¡kAª◊≈|dù^‹Ã»	¶UX¥#ãô…e9ã;2"8å*ÛàWà€e6û»MÑw–K'£>8d˙Ãëú0œléx@‹tác0ﬁãÕé∞$ÃqÊq«+ó'q#Œ’]8_¡“yç∫[KÎ[]…´€‚Õ—ÿıH‘Õw˘5Ô?è#a‡[œ`tNF¬Àª¨>1Ò’9ªØÃ-˝3'#íì@e‚‰e9€í… jXpe"û∞yi	?o‰æˇ‹W8˙Ú Íúm&2©,’Ì§⁄2:Ø®¶Í,∫ÈüTV®«“˘N'Ô⁄å„ﬂ~%≠ÌønOèø“éÚ	¡¬€àW}$èÜ—ñ†ñv•÷Ø«L∆´)´ºí‰[º‡„((„Sz1•Ä2ùRB©¢LÒJ∞Å≤åÌ]’Æ¥Ìheü”ùp¨>ªÎÕ:lp•-∆2ª	õXoV¿ª‚∆Mµ´ˆ;±÷∆r˙+¬µ∑#Ω¢dyòá˙^Îì˚Ÿﬂ!˙G¯P¿á“KÆ€ÑÜ´∞0’Wì ^ì9ÄòßßÕ¿˝Ïg,˚Îp¥zUA+nzí˝¡˘Ω„Ô«('A
+Ç>Êc#J®O`ΩÏH6À‰£∞êÂˆqé£lG&€‰+1,Ü…åg¡“1ôÛXe+‡qéÂî|éëÈ0Áw£ì±¡nç¥aﬂB.ıK)≠¨Sn„òn„…g˝Œ‰∆ãÈœ
+ZìG8è…nèÃQƒŸÔö0DåíKŸCi„˙û–#é,Œ/œâÀÖ[˜Ö„lfn ú8ù˘i PëäuQÓa˚ˆ†ô¬˝®t˘
+◊ö|õâ)is¬˙Â£ÇÁ·ÆkåÆ=3ÿíÏg„9ó&÷)b›ˆî‰9â0Ïa≥ïyô9PJo8Q˙˝‹Î^Ø0…Â©v”£Ï·^œva∆∞,óT†õ˘©aÓ›Ÿ¡µ¥Ú)2[Á˛HÍ∂œó3‰˚,ù˛0≥Ù«c|€#…ﬁkı¡üß.Õâ…‰Œ˜ó¶4È≠0é√_¥h%=ÈFÑ#í‚qÒÒò¯∂xT<"˛[Ïˇ%ˇ)æ%˛C|S¸ªÿ'˛M<$˛UÎ¸ãÙ7g‘#`È,ß[î˛'ÒÄ¯∫∏_¸£∏O|M¸Ω¯ä¯;ÒeÒ%Ò∑‚^ÒE|ŸÌEå§ıº|œS˜ÒkÈœ•Ë<œJF|Z|
+ª…'•?!Ó{ƒ«5˜«§?*Óª≈_ä;ƒ_à€≈üãè‡gò∆y=2`%ü„¯Œc˘u03≤ßÀZ¡»√|ÛÜÙπà%'“∑U'È!úGn·ª«ñ&Ò øäYÔAæﬂ,ÈÍm÷?’\xÄ#,ùÔ~ü,°Â|Œr#mJı‡"ñt=¸óSﬂ®6˜â˜ä?Vü]∏à¸ëÙ{‰ˇ°Fø[ûªR˝›≈o$gπ˛ú«‚j∑•‰˜π'ùj}ßF['˝{bá;«¯..$◊ ÛÒ€Íaç¢ﬂÔ–ò∑+zO≤≈≠™”ÆË-‚jÌÈ7Ugï¯úÌò|ìsªYûõƒï©≥≥ó–r∫Â€˛F≠'ÆqÌ€çZOÛ˜
+#mä¥a'#+∞ú£äX“ex9æÜãÈsK∫å8èª≠ÆÂW≈pΩj›0`iúÎUkô<◊âK≈%Zı‚“Å{√"LbÀÿÄ•ñŒc˘˝’Ó/T$äfÌ~Tª’‹ö± g—◊¨›o÷‹ú«‚ZµiÁâs≈9‚ó≈Òjqñxø[›]øJ÷LÕÛJÈ’‚óƒ‚≈È‚⁄©*Èï‚4q™¯yqäxπXû¸g˙9ı?Yû2›ËœJøT,'j5§_"é/«ââ%lmyÊú>V<_,œãË≥¸Ís˙9‚gƒBq4 …ÈüGâg#üc,ùïØzñÙ<ÒLúBé‰ó∂≈ßx‚-rÂœaé,ø∑]˝O ì-}∏8¨t‡|B™±œP≠!‚È‚i)f0;Y8ï#,ùÔ„»d6ñnƒÃT,S∑—ÈñméãÆÌ)∫]ÉÂ9YL?&O”ƒ∆ê!üÆzGAÔ(X—”›Ú‘≥—¸kπ˙ZzW∞˜€)(	 NJ∆LYŸnb…Õ0Ê/˚›/˜Ω1öYxﬁ˚ﬁƒ<˚‹+˜N	òO˛˘ˆ´64é"œÏ˜ﬁÏÂvÔˆ≤Òö^ÓR”‹5¥IŒ¶Òö§Ω¥hê,Ç—ˆjRrjµUÙó⁄ Èè(5i∏ÄXS™ÙO°≠ú(5ıO©"òÇ`†•M°`∫Òôπ´––bƒ?ﬁ≥œÃŒÌŒÃ˚Œ˚>;ÉÕÃ&ÜÁ‘3@«|[hÎâÃ” Ë≠$Fba+≠o$çqk≠èì8ﬁ”Döû¿‡ΩI¥lºzZ>®¸‘§ Î&ﬁ`Ä≈∞≤∏^ÍÅﬂ0¨Œ^1Ç>"ŸÖ˙gF#FÏ€éÄø,¢Y	ëë!œÃ¢˛r√ÿ˘Ëœπ˙+¬V©,~Mqrj«»˚UŸ÷ºW‹˚‰á¡«8o~\"R)®ˆr¶ÇMÅ°J
+iüø4ﬂIÏ |eæ#‚$ùñ§ì,(d˘EyÕÚeRØªyÌ-Õøıî_î’Ô0´õs	¢È¡q˝Ì∫≠t´:H’:¢jAù»çò£Œ^Z»,8ŸlÁ0±8È†ö‰ÿaO_œo›“‡‹ƒƒ\∫rÂÍEµÙë–ˇÃ?Èè~ÿ6EØ”pc
+_,¡‰µ>öK[f£)yA"€¶Æ»ñ•hXá\˚Õ∞—±Kè«r#§¡Æîó N8[=:I˚b¶Vˆ≤8Ü;h◊ÊıÎöµm›Fª∑æáFì]ô-]Ù¥Î7∆è÷ˇ¯¡¿D‚÷c_ÓV6ˆ$‚°∫Ì≠õ^z‚ècÔmKßﬁ·s—áû˝™Ê·=Cπ—òkª!FcÅâΩKîCl"‰(*çZå–ÄvºêÌπ∂^kW*ÂÖp}Ò¯Ã¥óó ãé®g˘ŸAü ‘G]Mß…ÃñnONvmß§⁄„Ém~ˇbÓ¸¯Yˇ=6]Lµ^˛˛íKK««û?!_‘Œú?]zızŸˇ:˜∏Âˇ‘r9J?ØåœéÒ˛Iì|S˛>µ)◊»LCWeâ¬Pöb±Ä°©äDôö∫eWzÀtép‚¡jûIuì∂ö¥õ ìyä»˚«˝È<}F\‰Oˆ¢8S+ÊÈ˛º?#|3π
+OﬁÅPÚˇ–—ˇ±
+"&TcÜã Fc8µªÓ’Ó˙3nìê}ˇ˙Ô~}˜›RAƒD‰ù‘—"∆¶†ê¿V~Y˘y•p«ÆV˛€w§W∆
+í€—Z÷∏„ñPL‘ƒêO™\BÆÍØqÆáv◊∏>R„¯—C˝èÏl€ÛJ1ˇ‹ËΩêCêï˝ï;!Áˆ@ÇI©gı ‰∞}Ÿ˜n˜OûàQ~’Ø «JBÂx¶÷√æå
+à6ﬂíû}OázoPZıØŸoΩ∆Ô<ü˘'oMØk3b∂jÛˇß  Ò`¿æ
+endstream
+endobj
+43 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 669
+/Descent -250
+/Flags 262242
+/FontBBox [-200 -218 996 921]
+/FontName /Times-BoldItalic
+/ItalicAngle -15
+/StemV 133
+/XHeight 462
+/StemH 121
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 32
+/LastChar 252
+/Widths [250 0 408 0 0 833 778 180 333 333 500 564 250 333 250 278 
+500 500 500 500 500 500 500 500 500 500 278 278 564 564 0 0 
+921 722 667 667 722 611 556 722 722 333 389 722 611 889 722 722 
+556 0 667 556 611 722 722 944 722 722 611 333 0 333 0 0 
+0 444 500 444 500 444 333 500 500 278 278 500 278 778 500 500 
+500 500 333 389 278 500 500 722 500 500 444 480 200 480 541 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 333 333 444 444 350 500 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 722 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+444 0 444 0 0 0 0 0 444 444 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 500 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-Roman
+/FontDescriptor 38 0 R
+>>
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 32
+/LastChar 121
+/Widths [250 0 0 0 0 0 0 0 333 333 0 0 0 333 250 0 
+500 500 500 500 500 500 500 500 500 500 333 0 0 0 0 0 
+0 722 667 722 722 667 0 778 0 389 0 0 667 944 722 778 
+611 0 722 556 667 0 0 1000 0 722 0 0 0 0 0 500 
+0 500 556 444 556 444 333 500 556 278 0 556 278 833 556 500 
+556 0 444 389 333 556 500 722 0 500 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-Bold
+/FontDescriptor 39 0 R
+>>
+endobj
+6 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 32
+/LastChar 122
+/Widths [250 0 0 0 0 0 778 214 333 333 0 0 250 333 250 0 
+0 500 500 500 500 0 500 0 0 500 333 0 0 0 0 0 
+0 611 0 667 722 611 611 0 722 333 444 0 556 833 0 722 
+611 0 611 500 556 722 611 0 0 0 0 0 0 0 0 0 
+0 500 500 444 500 444 278 500 500 278 278 444 278 722 500 500 
+500 500 389 389 278 500 444 667 444 444 389 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-Italic
+/FontDescriptor 40 0 R
+>>
+endobj
+7 0 obj
+<<
+/Type /Font
+/Subtype /Type0
+/BaseFont /BNEONK+Symbol
+/Encoding /Identity-H
+/DescendantFonts [ 44 0 R ]
+/ToUnicode 45 0 R
+>>
+endobj
+44 0 obj
+<<
+/Type /Font
+/Subtype /CIDFontType2
+/BaseFont /BNEONK+Symbol
+/FontDescriptor 36 0 R
+/CIDSystemInfo<<
+/Registry (Adobe)
+/Ordering (Identity)
+/Supplement 0
+>>
+/DW 1000
+/W [
+38 [548]
+47 [548]
+54 [611]
+92 [763]
+95 [630]
+101 [520]
+107 [548]
+109 [603]
+111 [438]
+155 [500]
+161 [438]
+]
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 40
+/LastChar 215
+/Widths [333 0 0 0 0 0 0 0 0 500 500 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 549 
+]
+/Encoding /WinAnsiEncoding
+/BaseFont /BNFADC+Symbol
+/FontDescriptor 41 0 R
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 98
+/LastChar 113
+/Widths [500 0 500 0 0 500 0 0 0 0 278 778 0 500 0 500 
+]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-BoldItalic
+/FontDescriptor 43 0 R
+>>
+endobj
+45 0 obj
+<<
+/Filter /FlateDecode
+/Length 277
+>>
+stream
+HâTëÀNÖ0Ü˜}äYj\î¬Å£	!Qå	/t_⁄I§4•,x{{¡c\¥Õ7”ø3Ûó÷Õc£&ÙÕ,¢E√§§¡uŸå@Ëqú∞‰$ÏAa3◊@ù∏›Wãs£Ü í–wó\≠Ÿ·™ÎŒ7…5–W#—LjtëS˙ÒÈ"Ì¶ı7Œ®,$PU q ¥~Ê˙Öœ4ˇÇ›Æ“¿Ï®ΩH\5h∏ $Iã úUÄJ˛œv»˙A|qC~ØßiëTÅ/ŒÍHYÃ%E†\Ñ‹˝AÒÊT‰ën#ıëû"…¯fÈ®p
+t◊á
+Ï»˜ÏuyE\ÎGè~o≈±„¸
+ø\Ò~L
+/•ÌG˜ã¸0 •Wá’
+endstream
+endobj
+1 0 obj
+<<
+/Type /Page
+/Parent 9 0 R
+/Resources 3 0 R
+/Contents 2 0 R
+>>
+endobj
+10 0 obj
+<<
+/Type /Page
+/Parent 9 0 R
+/Resources 12 0 R
+/Contents 11 0 R
+>>
+endobj
+14 0 obj
+<<
+/Type /Page
+/Parent 9 0 R
+/Resources 16 0 R
+/Contents 15 0 R
+>>
+endobj
+21 0 obj
+<<
+/Type /Page
+/Parent 9 0 R
+/Resources 23 0 R
+/Contents 22 0 R
+>>
+endobj
+24 0 obj
+<<
+/Type /Page
+/Parent 9 0 R
+/Resources 26 0 R
+/Contents 25 0 R
+>>
+endobj
+27 0 obj
+<<
+/Type /Page
+/Parent 9 0 R
+/Resources 29 0 R
+/Contents 28 0 R
+>>
+endobj
+46 0 obj
+<<
+/S /D
+>>
+endobj
+47 0 obj
+<<
+/Nums [0 46 0 R ]
+>>
+endobj
+9 0 obj
+<<
+/Type /Pages
+/Kids [1 0 R 10 0 R 14 0 R 21 0 R 24 0 R 27 0 R]
+/Count 6
+/Rotate 270
+/MediaBox [0 0 595 842]
+>>
+endobj
+48 0 obj
+<<
+/CreationDate (D:20040527173905+02'00')
+/ModDate (D:20040527173905+02'00')
+/Producer (PSNormalizer.framework)
+>>
+endobj
+49 0 obj
+<<
+/Type /Catalog
+/Pages 9 0 R
+/PageLabels 47 0 R
+>>
+endobj
+xref
+0 50
+0000000000 65535 f 
+0000126705 00000 n 
+0000000016 00000 n 
+0000013536 00000 n 
+0000123417 00000 n 
+0000124230 00000 n 
+0000124691 00000 n 
+0000125159 00000 n 
+0000113961 00000 n 
+0000127268 00000 n 
+0000126785 00000 n 
+0000013664 00000 n 
+0000029840 00000 n 
+0000125600 00000 n 
+0000126868 00000 n 
+0000029981 00000 n 
+0000055825 00000 n 
+0000126138 00000 n 
+0000112332 00000 n 
+0000112697 00000 n 
+0000113062 00000 n 
+0000126951 00000 n 
+0000056016 00000 n 
+0000083505 00000 n 
+0000127034 00000 n 
+0000083659 00000 n 
+0000099606 00000 n 
+0000127117 00000 n 
+0000099724 00000 n 
+0000112112 00000 n 
+0000112230 00000 n 
+0000113325 00000 n 
+0000112595 00000 n 
+0000113537 00000 n 
+0000112960 00000 n 
+0000113749 00000 n 
+0000114101 00000 n 
+0000114291 00000 n 
+0000119050 00000 n 
+0000119247 00000 n 
+0000119449 00000 n 
+0000119649 00000 n 
+0000119840 00000 n 
+0000123208 00000 n 
+0000125301 00000 n 
+0000126355 00000 n 
+0000127200 00000 n 
+0000127228 00000 n 
+0000127396 00000 n 
+0000127528 00000 n 
+trailer
+<<
+/Size 50
+/Root 49 0 R
+/Info 48 0 R
+/ID [<955605a336bb1fba85780c24a797ba37><955605a336bb1fba85780c24a797ba37>]
+>>
+startxref
+127597
+%%EOF
